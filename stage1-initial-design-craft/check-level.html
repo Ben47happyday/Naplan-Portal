@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Check my level — NAPLAN Prep Hub</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="index.html"><img src="images/logo.jpg" alt="NAPLAN Prep Hub logo" class="brand-logo"> NAPLAN Prep Hub</a>
+    <nav class="main-nav">
+      <a href="understand.html" class="nav-link"><i class="ti ti-book-2"></i><span>Understand</span></a>
+      <a href="practice.html" class="nav-link"><i class="ti ti-target-arrow"></i><span>Practice</span></a>
+      <a href="check-level.html" class="nav-link active"><i class="ti ti-gauge"></i><span>Check my level</span></a>
+      <span id="auth-slot" class="auth-slot">
+        <a href="login.html" class="auth-login-link">Log in</a>
+        <a class="btn btn-primary btn-small" href="signup.html">Sign up</a>
+      </span>
+    </nav>
+  </div>
+</header>
+
+<section class="page-section container">
+  <h1>Check my level</h1>
+  <p class="lede">A short diagnostic across all four domains gives an instant NAPLAN band estimate and shows exactly which strands to focus on next.</p>
+
+  <p style="font-size:13px;font-weight:600;color:var(--text-heading);margin:0 0 8px;">Year level</p>
+  <div class="tab-row" id="year-tabs" style="margin-bottom:20px;">
+    <span class="tab" data-year="3">Year 3</span>
+    <span class="tab" data-year="5">Year 5</span>
+    <span class="tab" data-year="7">Year 7</span>
+    <span class="tab" data-year="9">Year 9</span>
+  </div>
+
+  <div class="diagnostic-banner">
+    <div>
+      <h3><i class="ti ti-gauge"></i> <span id="diagnostic-title">Year 5 level check</span></h3>
+      <p>About 15–20 minutes · Reading, writing, language conventions, numeracy</p>
+    </div>
+    <a class="btn btn-primary" id="start-check-btn" href="practice.html">Start the check</a>
+  </div>
+
+  <div class="card-grid">
+    <div class="info-card">
+      <span class="icon-circle coral" style="margin-bottom:10px;"><img src="images/icon-pencil-cartoon.svg" alt="" width="24" height="24"></span>
+      <h4>1. Answer a short set of questions</h4>
+      <p>Difficulty adjusts as you go, just like the real online NAPLAN test.</p>
+    </div>
+    <div class="info-card">
+      <span class="icon-circle green" style="margin-bottom:10px;"><img src="images/icon-gauge-cartoon.svg" alt="" width="24" height="24"></span>
+      <h4>2. Get an instant band estimate</h4>
+      <p>See where your child sits right now, per domain.</p>
+    </div>
+    <div class="info-card">
+      <span class="icon-circle amber" style="margin-bottom:10px;"><img src="images/icon-book-cartoon.svg" alt="" width="24" height="24"></span>
+      <h4>3. Follow a recommended practice set</h4>
+      <p>We suggest what to practice first, based on the results.</p>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>NAPLAN Prep Hub · not affiliated with ACARA</span>
+    <span>FAQ · Privacy · Contact</span>
+  </div>
+</footer>
+
+<script src="js/year.js"></script>
+<script src="js/auth-nav.js"></script>
+<script src="js/interactions.js"></script>
+<script>
+  let YEAR = NaplanYear.get();
+  const yearTabs = document.querySelectorAll("#year-tabs .tab");
+
+  function loadDiagnostic() {
+    document.getElementById("diagnostic-title").textContent = `Year ${YEAR} level check`;
+    const btn = document.getElementById("start-check-btn");
+    btn.textContent = "Start the check";
+
+    fetch(`/api/tests?year=${YEAR}&type=diagnostic`)
+      .then((res) => res.json())
+      .then((tests) => {
+        if (tests.length) {
+          btn.href = `quiz.html?test_id=${tests[0].test_id}`;
+        } else {
+          btn.href = "#";
+          btn.textContent = "Not available yet for this year";
+        }
+      });
+  }
+
+  NaplanYear.wirePicker(yearTabs, "active", (y) => {
+    YEAR = y;
+    NaplanYear.propagateToLinks(document.body);
+    loadDiagnostic();
+  });
+
+  NaplanYear.propagateToLinks(document.body);
+  loadDiagnostic();
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+flask
+pyodbc
+pyspellchecker
+python-dotenv
+gunicorn

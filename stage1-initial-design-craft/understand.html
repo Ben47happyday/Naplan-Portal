@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Understand the NAPLAN test — NAPLAN Prep Hub</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css">
+</head>
+<body class="understand-page">
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="index.html"><img src="images/logo.jpg" alt="NAPLAN Prep Hub logo" class="brand-logo"> NAPLAN Prep Hub</a>
+    <nav class="main-nav">
+      <a href="understand.html" class="nav-link active"><i class="ti ti-book-2"></i><span>Understand</span></a>
+      <a href="practice.html" class="nav-link"><i class="ti ti-target-arrow"></i><span>Practice</span></a>
+      <a href="check-level.html" class="nav-link"><i class="ti ti-gauge"></i><span>Check my level</span></a>
+      <span id="auth-slot" class="auth-slot">
+        <a href="login.html" class="auth-login-link">Log in</a>
+        <a class="btn btn-primary btn-small" href="signup.html">Sign up</a>
+      </span>
+    </nav>
+  </div>
+</header>
+
+<section class="page-section container">
+  <h1>Understand the NAPLAN test</h1>
+  <p class="lede">NAPLAN (the National Assessment Program — Literacy and Numeracy) is Australia's annual check-in on how students are tracking in reading, writing, language conventions and numeracy. Every student in Years 3, 5, 7 and 9 sits it. Each section below covers one aspect of the test — open "More details" on any of them for the full picture.</p>
+
+  <div class="info-section reveal">
+    <div class="info-section-head">
+      <span class="icon-circle amber"><i class="ti ti-info-circle"></i></span>
+      <div class="info-section-copy">
+        <h2>What is NAPLAN?</h2>
+        <p class="section-lede">A national literacy and numeracy check-in, not a pass/fail exam — and it isn't compulsory.</p>
+      </div>
+      <button class="more-details-btn" data-target="detail-what-is" aria-expanded="false">More details <i class="ti ti-chevron-down"></i></button>
+    </div>
+    <div class="info-section-expand" id="detail-what-is"><div>
+      <p>NAPLAN is run by ACARA (the Australian Curriculum, Assessment and Reporting Authority) and sat every year by students in Years 3, 5, 7 and 9 across every state and territory. It's a point-in-time snapshot of how a student is tracking against national literacy and numeracy standards — the results feed into school and system-level planning, not individual report card grades, and no student "passes" or "fails".</p>
+      <p>Sitting NAPLAN isn't compulsory. Families can request a withdrawal or exemption through their school, but the large majority of students take part each year.</p>
+    </div></div>
+  </div>
+
+  <div class="info-section reveal">
+    <div class="info-section-head">
+      <span class="icon-circle coral"><i class="ti ti-calendar-event"></i></span>
+      <div class="info-section-copy">
+        <h2>When does it happen?</h2>
+        <p class="section-lede">A national testing window, usually in March — not a single fixed day for the whole country.</p>
+      </div>
+      <button class="more-details-btn" data-target="detail-when" aria-expanded="false">More details <i class="ti ti-chevron-down"></i></button>
+    </div>
+    <div class="info-section-expand" id="detail-when"><div>
+      <p>Each school schedules its sittings within a national testing window set by ACARA, typically across two to three weeks in March. Your child's school will confirm the exact days closer to the date, and most schools build in catch-up sessions for students who are away or unwell during the main window.</p>
+      <p>Individual student reports are usually sent home later in the year, well after the testing window closes — schools receive the detailed results first and pass them on.</p>
+    </div></div>
+  </div>
+
+  <div class="info-section reveal">
+    <div class="info-section-head">
+      <span class="icon-circle green"><i class="ti ti-device-laptop"></i></span>
+      <div class="info-section-copy">
+        <h2>How is it delivered?</h2>
+        <p class="section-lede">Mostly online, with one paper exception — and it adapts to how a student is going.</p>
+      </div>
+      <button class="more-details-btn" data-target="detail-delivery" aria-expanded="false">More details <i class="ti ti-chevron-down"></i></button>
+    </div>
+    <div class="info-section-expand" id="detail-delivery"><div>
+      <p>From Year 3, Reading, Language Conventions and Numeracy are all completed on a school computer or tablet. Writing stays on paper for Year 3 only, moving fully online from Year 5.</p>
+      <p>From Year 5 onwards, Reading and Numeracy are <strong>adaptive</strong>: if a student is answering well, the next questions get a little harder; if they're struggling, the questions ease off. This gives a more precise read on ability than a fixed question set, and means two students in the same room can see different questions.</p>
+    </div></div>
+  </div>
+
+  <div class="info-section reveal">
+    <div class="info-section-head">
+      <span class="icon-circle amber"><i class="ti ti-list-check"></i></span>
+      <div class="info-section-copy">
+        <h2>What's tested, and how many questions</h2>
+        <p class="section-lede">Four domains — reading, writing, language conventions and numeracy — each with a different time limit and question count by year level.</p>
+      </div>
+      <button class="more-details-btn" data-target="detail-domains" aria-expanded="false">More details <i class="ti ti-chevron-down"></i></button>
+    </div>
+
+    <div class="tab-row" id="year-tabs" style="margin-top:18px;">
+      <span class="tab" data-year="3">Year 3</span>
+      <span class="tab" data-year="5">Year 5</span>
+      <span class="tab" data-year="7">Year 7</span>
+      <span class="tab" data-year="9">Year 9</span>
+    </div>
+    <div class="card-grid" id="domain-cards"></div>
+
+    <div class="info-section-expand" id="detail-domains"><div>
+      <p id="format-note" class="lede" style="margin:0;"></p>
+      <p>Question counts above are approximate — they vary slightly release to release, and adaptive domains (Reading and Numeracy from Year 5) show each student a different number of items depending on how they're tracking.</p>
+    </div></div>
+  </div>
+
+  <div class="info-section reveal">
+    <div class="info-section-head">
+      <span class="icon-circle coral"><i class="ti ti-gauge"></i></span>
+      <div class="info-section-copy">
+        <h2>How results are evaluated</h2>
+        <p class="section-lede">Each domain is reported against four proficiency levels, not a raw score out of 100.</p>
+      </div>
+      <button class="more-details-btn" data-target="detail-results" aria-expanded="false">More details <i class="ti ti-chevron-down"></i></button>
+    </div>
+    <div class="info-section-expand" id="detail-results"><div>
+      <p>Every domain — Reading, Writing, Language Conventions and Numeracy — sits on the same underlying numeric scale from Year 3 through to Year 9. ACARA sets fixed cut-points on that scale to mark the boundaries between the four proficiency levels, and those cut-points don't move from year to year. That's what lets a school (or a parent) compare a student's Year 5 result with their Year 3 result on the same yardstick, rather than starting fresh each time.</p>
+
+      <div class="card-grid" style="margin-top:2px;">
+        <div class="info-card">
+          <h4>Exceeding</h4>
+          <p>Performing above expectations for their year level.</p>
+        </div>
+        <div class="info-card">
+          <h4>Strong</h4>
+          <p>Meeting the challenging but reasonable standard expected for their year level.</p>
+        </div>
+        <div class="info-card">
+          <h4>Developing</h4>
+          <p>Working towards the standard, with some gaps to close.</p>
+        </div>
+        <div class="info-card">
+          <h4>Needs additional support</h4>
+          <p>Likely to need extra support to build skills for their year level.</p>
+        </div>
+      </div>
+
+      <p style="margin-top:16px;">The individual report a school sends home shows the proficiency level for each domain, plus roughly where the student sits within that level on a scale bar — so two students both marked "Strong" can still see they landed in different spots. Reports also show how the result compares to the school average and the national average for that year level, but they don't rank individual students against their classmates, and no student-level results are published publicly. Schools receive the full results first, then pass the individual reports on to families, typically in Term 3.</p>
+
+      <p>Because the scale is consistent across year levels, the most useful thing to look at usually isn't a single result in isolation but the trend across a student's Year 3, 5, 7 and 9 reports — whether they're tracking with the standard, pulling ahead, or falling behind it over time.</p>
+    </div></div>
+  </div>
+
+  <div class="info-section reveal">
+    <div class="info-section-head">
+      <span class="icon-circle green"><i class="ti ti-help-circle"></i></span>
+      <div class="info-section-copy">
+        <h2>Common questions</h2>
+        <p class="section-lede">The questions families ask most about NAPLAN — tap any question for the full answer.</p>
+      </div>
+    </div>
+
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-question" data-target="faq-1" aria-expanded="false">
+          <span>Does my child have to sit it?</span>
+          <i class="ti ti-chevron-down"></i>
+        </button>
+        <div class="info-section-expand" id="faq-1"><div>
+          <p>NAPLAN isn't compulsory. If you'd rather your child didn't sit it, you can request a withdrawal or exemption through the school — exemptions are also available for students with a disability or very limited English, and there's a separate process for students away during the test window. In practice, the vast majority of students do take part, since most schools treat it as a normal part of the term.</p>
+        </div></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" data-target="faq-2" aria-expanded="false">
+          <span>Can we prepare without added pressure?</span>
+          <i class="ti ti-chevron-down"></i>
+        </button>
+        <div class="info-section-expand" id="faq-2"><div>
+          <p>Cramming in the week before tends to raise stress without improving results much. What actually helps is short, low-key practice spread over weeks or months — 15 to 20 minutes a couple of times a week with the same question style as the real test, so the format feels familiar rather than novel on the day. That's exactly what the Practice section on this site is built for, and it's worth stopping a week or two out so the last thing your child associates with NAPLAN isn't a stressful cram session.</p>
+        </div></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" data-target="faq-3" aria-expanded="false">
+          <span>What if my child gets test anxiety?</span>
+          <i class="ti ti-chevron-down"></i>
+        </button>
+        <div class="info-section-expand" id="faq-3"><div>
+          <p>It's common, and schools are used to managing it — talk to the classroom teacher, since schools can offer accommodations like extra time, rest breaks or a quieter room for students who need them. Beyond that, familiarity is the best antidote to anxiety: a student who has already seen the question types and screen layout in low-stakes practice tends to feel far less rattled on the day than one seeing it for the first time.</p>
+        </div></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" data-target="faq-4" aria-expanded="false">
+          <span>When do we get results?</span>
+          <i class="ti ti-chevron-down"></i>
+        </button>
+        <div class="info-section-expand" id="faq-4"><div>
+          <p>Schools receive the full results first, then pass individual student reports home to families — this typically happens in Term 3, months after the March testing window, because ACARA and test markers need time to process results (including manually marked writing) across the whole country. If you haven't received a report by the end of Term 3, it's worth checking directly with the school.</p>
+        </div></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" data-target="faq-5" aria-expanded="false">
+          <span>Will the results affect what class or school my child gets into?</span>
+          <i class="ti ti-chevron-down"></i>
+        </button>
+        <div class="info-section-expand" id="faq-5"><div>
+          <p>No. NAPLAN isn't used for school enrolment or class placement decisions by ACARA — it's a system-level check-in, not a selection tool. Some schools or selective-entry programs may separately choose to look at a student's broader academic record as part of their own process, but that's a decision made locally, not something NAPLAN itself determines.</p>
+        </div></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" data-target="faq-6" aria-expanded="false">
+          <span>What happens if my child is away or unwell on test day?</span>
+          <i class="ti ti-chevron-down"></i>
+        </button>
+        <div class="info-section-expand" id="faq-6"><div>
+          <p>Most schools build catch-up sessions into the national testing window, so a student who misses the main sitting can usually take the test on a later day within that window. If they miss the whole window, they simply won't have a result for that year — it isn't treated as a fail, and there's no makeup test outside the official window.</p>
+        </div></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" data-target="faq-7" aria-expanded="false">
+          <span>Is NAPLAN the same as my school's own testing?</span>
+          <i class="ti ti-chevron-down"></i>
+        </button>
+        <div class="info-section-expand" id="faq-7"><div>
+          <p>No — NAPLAN is a single national test set by ACARA and sat by every state and territory, separate from any school-based or state-run assessments, like ongoing classroom tests. Schools often also run their own internal assessments throughout the year; NAPLAN is just one point-in-time snapshot among those, not a replacement for regular schoolwork or reporting.</p>
+        </div></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" data-target="faq-8" aria-expanded="false">
+          <span>Can we see the actual test questions afterwards?</span>
+          <i class="ti ti-chevron-down"></i>
+        </button>
+        <div class="info-section-expand" id="faq-8"><div>
+          <p>Not usually. Most NAPLAN questions are reused across years to keep the underlying scale consistent, so ACARA doesn't release full past papers. ACARA does publish a bank of sample and practice questions showing the style and format for each domain and year level — which is the same style used throughout the Practice section here.</p>
+        </div></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" data-target="faq-9" aria-expanded="false">
+          <span>Does NAPLAN cover everything taught in class?</span>
+          <i class="ti ti-chevron-down"></i>
+        </button>
+        <div class="info-section-expand" id="faq-9"><div>
+          <p>No — NAPLAN only tests literacy and numeracy, and only a sample of the skills within those areas, in a fixed time limit. It doesn't cover other subjects like science, humanities or the arts, and even within literacy and numeracy it can't test everything a student has learned that year. It's best thought of as a narrow, standardised check on a few core skills, not a full picture of a student's learning.</p>
+        </div></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" data-target="faq-10" aria-expanded="false">
+          <span>How is NAPLAN different from my child's normal school exams?</span>
+          <i class="ti ti-chevron-down"></i>
+        </button>
+        <div class="info-section-expand" id="faq-10"><div>
+          <p>School exams and assignments are set by the teacher, cover exactly what's been taught in class, and usually count toward a report card grade. NAPLAN is set nationally by ACARA, doesn't test a specific term's classwork, and never appears on a report card — it's designed to measure literacy and numeracy against the same national standard for every student in that year level, regardless of what curriculum sequence their particular school follows.</p>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>NAPLAN Prep Hub · not affiliated with ACARA</span>
+    <span>FAQ · Privacy · Contact</span>
+  </div>
+</footer>
+
+<script src="js/year.js"></script>
+<script src="js/auth-nav.js"></script>
+<script src="js/interactions.js"></script>
+<script src="js/understand.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- flat 2D cartoon calculator with a friendly face -->
+  <g transform="rotate(-5 50 50)">
+    <rect x="24" y="14" width="52" height="72" rx="9" fill="#3B6D11"/>
+    <rect x="31" y="22" width="38" height="20" rx="4" fill="#EAF3DE"/>
+    <!-- face on screen -->
+    <circle cx="42" cy="32" r="2.3" fill="#2C2013"/>
+    <circle cx="58" cy="32" r="2.3" fill="#2C2013"/>
+    <path d="M42 37 Q50 41 58 37" stroke="#2C2013" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- buttons grid -->
+    <rect x="31" y="48" width="10" height="8" rx="2" fill="#EAF3DE"/>
+    <rect x="45" y="48" width="10" height="8" rx="2" fill="#EAF3DE"/>
+    <rect x="59" y="48" width="10" height="8" rx="2" fill="#F7A026"/>
+    <rect x="31" y="60" width="10" height="8" rx="2" fill="#EAF3DE"/>
+    <rect x="45" y="60" width="10" height="8" rx="2" fill="#EAF3DE"/>
+    <rect x="59" y="60" width="10" height="8" rx="2" fill="#EAF3DE"/>
+    <rect x="31" y="72" width="10" height="8" rx="2" fill="#EAF3DE"/>
+    <rect x="45" y="72" width="10" height="8" rx="2" fill="#EAF3DE"/>
+    <rect x="59" y="72" width="10" height="8" rx="2" fill="#EAF3DE"/>
+  </g>
+</svg>

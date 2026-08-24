@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- flat 2D cartoon pencil character, waving -->
+  <g transform="rotate(18 50 50)">
+    <!-- eraser -->
+    <rect x="38" y="14" width="24" height="16" rx="5" fill="#F6B8AA"/>
+    <rect x="38" y="26" width="24" height="6" fill="#D8CFC0"/>
+    <!-- body -->
+    <rect x="38" y="32" width="24" height="42" fill="#F7A026"/>
+    <rect x="38" y="32" width="24" height="6" fill="#FFE9C7"/>
+    <rect x="38" y="46" width="24" height="4" fill="#FFE9C7"/>
+    <!-- wood tip -->
+    <path d="M38 74 L62 74 L50 92 Z" fill="#F0D9B5"/>
+    <path d="M46 84 L54 84 L50 92 Z" fill="#2C2013"/>
+    <!-- face -->
+    <circle cx="45" cy="42" r="2.6" fill="#2C2013"/>
+    <circle cx="55" cy="42" r="2.6" fill="#2C2013"/>
+    <path d="M45 49 Q50 53 55 49" stroke="#2C2013" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- arm waving -->
+    <path d="M62 58 C 78 54, 82 40, 76 30" stroke="#993C1D" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <circle cx="76" cy="30" r="5" fill="#993C1D"/>
+    <!-- other arm -->
+    <path d="M38 58 C 26 60, 22 68, 26 76" stroke="#993C1D" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <circle cx="26" cy="76" r="5" fill="#993C1D"/>
+  </g>
+</svg>

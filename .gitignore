@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Marketing credentials & PII — never commit
+marketing/scret.txt
+marketing/config.json
+marketing/config.test.json
+marketing/test_sent_log.csv
+marketing/unsubscribe_list.csv
+marketing/test_lead.csv
+
+# Editor / OS
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Claude Code local session data
+.claude/

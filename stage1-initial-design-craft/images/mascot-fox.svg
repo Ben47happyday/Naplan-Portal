@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <!-- NAPLAN Prep Hub mascot: a friendly, flat 2D cartoon fox holding a book -->
+  <ellipse cx="120" cy="222" rx="70" ry="10" fill="#E4E1D8" opacity="0.5"/>
+
+  <!-- tail -->
+  <path d="M170 150 C 210 150, 220 100, 190 80 C 210 95, 205 140, 168 165 Z" fill="#F7A026"/>
+  <path d="M188 92 C 198 100, 198 118, 186 128 C 196 116, 194 100, 182 94 Z" fill="#FFFCF6"/>
+
+  <!-- body -->
+  <ellipse cx="120" cy="175" rx="52" ry="42" fill="#F7A026"/>
+  <ellipse cx="120" cy="188" rx="30" ry="24" fill="#FFFCF6"/>
+
+  <!-- arms holding book -->
+  <ellipse cx="88" cy="168" rx="12" ry="20" fill="#F7A026" transform="rotate(-20 88 168)"/>
+  <ellipse cx="152" cy="168" rx="12" ry="20" fill="#F7A026" transform="rotate(20 152 168)"/>
+
+  <!-- book -->
+  <g transform="translate(96 150)">
+    <rect x="0" y="0" width="48" height="34" rx="4" fill="#3B6D11"/>
+    <rect x="3" y="3" width="21" height="28" rx="2" fill="#FFFFFF"/>
+    <rect x="24" y="3" width="21" height="28" rx="2" fill="#FFFCF6"/>
+    <line x1="24" y1="3" x2="24" y2="31" stroke="#E4E1D8" stroke-width="1.5"/>
+    <line x1="7" y1="10" x2="20" y2="10" stroke="#E4E1D8" stroke-width="2"/>
+    <line x1="7" y1="16" x2="20" y2="16" stroke="#E4E1D8" stroke-width="2"/>
+    <line x1="28" y1="10" x2="41" y2="10" stroke="#E4E1D8" stroke-width="2"/>
+    <line x1="28" y1="16" x2="41" y2="16" stroke="#E4E1D8" stroke-width="2"/>
+  </g>
+
+  <!-- ears -->
+  <path d="M78 90 L60 40 L104 78 Z" fill="#F7A026"/>
+  <path d="M83 84 L72 52 L99 76 Z" fill="#4A1B0C"/>
+  <path d="M162 90 L180 40 L136 78 Z" fill="#F7A026"/>
+  <path d="M157 84 L168 52 L141 76 Z" fill="#4A1B0C"/>
+
+  <!-- head -->
+  <ellipse cx="120" cy="110" rx="55" ry="48" fill="#F7A026"/>
+
+  <!-- snout patch -->
+  <path d="M120 96 C 100 96, 90 118, 100 136 C 108 146, 132 146, 140 136 C 150 118, 140 96, 120 96 Z" fill="#FFFCF6"/>
+
+  <!-- cheeks blush -->
+  <ellipse cx="92" cy="120" rx="9" ry="6" fill="#FAECE7" opacity="0.9"/>
+  <ellipse cx="148" cy="120" rx="9" ry="6" fill="#FAECE7" opacity="0.9"/>
+
+  <!-- eyes -->
+  <circle cx="103" cy="104" r="7" fill="#2C2013"/>
+  <circle cx="137" cy="104" r="7" fill="#2C2013"/>
+  <circle cx="101" cy="101" r="2.2" fill="#FFFFFF"/>
+  <circle cx="135" cy="101" r="2.2" fill="#FFFFFF"/>
+
+  <!-- nose + smile -->
+  <ellipse cx="120" cy="122" rx="6" ry="4.5" fill="#4A1B0C"/>
+  <path d="M108 130 Q120 140 132 130" stroke="#4A1B0C" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+</svg>

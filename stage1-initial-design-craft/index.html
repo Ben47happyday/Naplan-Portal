@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NAPLAN Prep Hub — Understand, practice, check your level</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="index.html"><img src="images/logo.jpg" alt="NAPLAN Prep Hub logo" class="brand-logo"> NAPLAN Prep Hub</a>
+    <nav class="main-nav">
+      <a href="understand.html" class="nav-link"><i class="ti ti-book-2"></i><span>Understand</span></a>
+      <a href="practice.html" class="nav-link"><i class="ti ti-target-arrow"></i><span>Practice</span></a>
+      <a href="check-level.html" class="nav-link"><i class="ti ti-gauge"></i><span>Check my level</span></a>
+      <span id="auth-slot" class="auth-slot">
+        <a href="login.html" class="auth-login-link">Log in</a>
+        <a class="btn btn-primary btn-small" href="signup.html">Sign up</a>
+      </span>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-copy">
+    <h1>Every step of NAPLAN, made simple</h1>
+    <p>Warm, guided help for parents and students — understand the test, practice with real style questions, and see your current level.</p>
+    <div class="actions">
+      <a class="btn btn-primary" id="hero-check-level" href="check-level.html">Check my level</a>
+      <a class="btn btn-secondary" id="hero-see-agenda" href="understand.html">See test agenda</a>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <img class="hero-mascot" src="images/owl-mascot.png" alt="NAPLAN Prep Hub mascot owl holding a book" width="220" height="220">
+  </div>
+</section>
+
+<section class="pillars">
+  <div class="pillars-grid" id="pillars-grid">
+    <div class="pillar-card">
+      <span class="icon-circle amber"><img src="images/icon-book-cartoon.svg" alt="" width="26" height="26"></span>
+      <h3>Understand the test</h3>
+      <p>What's covered, by year level</p>
+      <a href="understand.html">Learn more →</a>
+    </div>
+    <div class="pillar-card">
+      <span class="icon-circle coral"><img src="images/icon-pencil-cartoon.svg" alt="" width="26" height="26"></span>
+      <h3>Practice questions</h3>
+      <p>Reading, writing, numeracy, conventions</p>
+      <a href="practice.html">Start practicing →</a>
+    </div>
+    <div class="pillar-card">
+      <span class="icon-circle green"><img src="images/icon-gauge-cartoon.svg" alt="" width="26" height="26"></span>
+      <h3>Check current level</h3>
+      <p>A short, friendly diagnostic</p>
+      <a href="check-level.html">Take the check →</a>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>NAPLAN Prep Hub · not affiliated with ACARA</span>
+    <span>FAQ · Privacy · Contact</span>
+  </div>
+</footer>
+
+<script src="js/year.js"></script>
+<script src="js/auth-nav.js"></script>
+<script src="js/interactions.js"></script>
+<script>
+  NaplanYear.propagateToLinks(document.body); // covers hero, pillar and nav links
+</script>
+</body>
+</html>

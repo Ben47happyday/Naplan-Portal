@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- flat 2D cartoon book with a friendly face -->
+  <g transform="rotate(-6 50 50)">
+    <rect x="18" y="28" width="64" height="46" rx="6" fill="#854F0B"/>
+    <rect x="21" y="31" width="27" height="40" rx="3" fill="#FFFCF6"/>
+    <rect x="52" y="31" width="27" height="40" rx="3" fill="#FFFFFF"/>
+    <line x1="50" y1="31" x2="50" y2="71" stroke="#E4E1D8" stroke-width="2"/>
+    <line x1="27" y1="40" x2="42" y2="40" stroke="#F0D9B5" stroke-width="2.5"/>
+    <line x1="27" y1="47" x2="42" y2="47" stroke="#F0D9B5" stroke-width="2.5"/>
+    <line x1="58" y1="40" x2="73" y2="40" stroke="#F0D9B5" stroke-width="2.5"/>
+    <line x1="58" y1="47" x2="73" y2="47" stroke="#F0D9B5" stroke-width="2.5"/>
+    <!-- face -->
+    <circle cx="42" cy="58" r="3" fill="#2C2013"/>
+    <circle cx="58" cy="58" r="3" fill="#2C2013"/>
+    <path d="M43 65 Q50 71 57 65" stroke="#2C2013" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <!-- bookmark -->
+    <path d="M60 20 L72 20 L72 36 L66 30 L60 36 Z" fill="#F7A026"/>
+  </g>
+</svg>

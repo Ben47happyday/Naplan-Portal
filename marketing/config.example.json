@@ -1,0 +1,26 @@
+{
+  "auth": {
+    "tenant_id": "REPLACE_WITH_ENTRA_TENANT_ID",
+    "client_id": "REPLACE_WITH_ENTRA_APP_CLIENT_ID"
+  },
+  "sender": {
+    "name": "Your Name",
+    "email": "you@example.com",
+    "reply_to": "you@example.com"
+  },
+  "business": {
+    "name": "NAPLAN Prep Hub",
+    "address": "Your registered business address (required for compliance footer)"
+  },
+  "campaign": {
+    "csv_path": "../database/naplan_sydney_agent_leads.csv",
+    "name_column": "Agent Name",
+    "email_column": "Email",
+    "template_path": "email_template.html",
+    "learn_more_url": "REPLACE_WITH_NAPLAN_PORTAL_URL",
+    "subject": "Licensed NAPLAN practice content for {agent_name}",
+    "delay_seconds": 5,
+    "log_path": "sent_log.csv",
+    "suppression_path": "unsubscribe_list.csv"
+  }
+}
