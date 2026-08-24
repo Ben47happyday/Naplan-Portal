@@ -202,4 +202,85 @@ BEGIN
 END
 GO
 
+-- ------------------------------------------------------------------
+-- Marketing: B2B lead outreach (separate domain from students/content —
+-- receivers are tutoring-centre/agent leads, not NAPLAN students).
+-- Send/open/click are kept as separate event tables (not counters on
+-- campaign_sends) so every engagement event is recorded for analysis,
+-- mirroring the attempts/attempt_answers behavioural-data pattern above.
+-- ------------------------------------------------------------------
+
+IF OBJECT_ID('dbo.campaign_receivers', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.campaign_receivers (
+        receiver_id      INT IDENTITY(1,1) PRIMARY KEY,
+        org_name         NVARCHAR(200) NOT NULL,
+        email            NVARCHAR(255) NOT NULL,
+        phone            NVARCHAR(50) NULL,
+        address          NVARCHAR(300) NULL,
+        region           NVARCHAR(100) NULL,
+        source           NVARCHAR(100) NULL,        -- e.g. 'naplan_sydney_agent_leads.csv'
+        selection_reason NVARCHAR(500) NULL,
+        is_unsubscribed  BIT NOT NULL DEFAULT 0,
+        created_at       DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
+    );
+    CREATE UNIQUE INDEX UX_campaign_receivers_email ON dbo.campaign_receivers(email);
+END
+GO
+
+IF OBJECT_ID('dbo.campaigns', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.campaigns (
+        campaign_id      INT IDENTITY(1,1) PRIMARY KEY,
+        name             NVARCHAR(200) NOT NULL,
+        subject_template NVARCHAR(300) NOT NULL,
+        template_path    NVARCHAR(300) NOT NULL,
+        sender_email     NVARCHAR(255) NOT NULL,
+        learn_more_url   NVARCHAR(500) NULL,
+        status           NVARCHAR(20) NOT NULL DEFAULT 'draft',  -- draft, sending, completed
+        created_at       DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
+    );
+END
+GO
+
+IF OBJECT_ID('dbo.campaign_sends', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.campaign_sends (
+        send_id          INT IDENTITY(1,1) PRIMARY KEY,
+        campaign_id      INT NOT NULL FOREIGN KEY REFERENCES dbo.campaigns(campaign_id),
+        receiver_id      INT NOT NULL FOREIGN KEY REFERENCES dbo.campaign_receivers(receiver_id),
+        tracking_token   UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),  -- embedded in pixel/redirect URLs
+        status           NVARCHAR(10) NOT NULL DEFAULT 'sent',       -- sent, failed (matches marketing/*_sent_log.csv status values)
+        error_detail     NVARCHAR(1000) NULL,
+        sent_at          DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
+    );
+    CREATE UNIQUE INDEX UX_campaign_sends_tracking_token ON dbo.campaign_sends(tracking_token);
+END
+GO
+
+IF OBJECT_ID('dbo.campaign_opens', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.campaign_opens (
+        open_id          INT IDENTITY(1,1) PRIMARY KEY,
+        send_id          INT NOT NULL FOREIGN KEY REFERENCES dbo.campaign_sends(send_id),
+        opened_at        DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+        ip_address       NVARCHAR(45) NULL,
+        user_agent       NVARCHAR(500) NULL
+    );
+END
+GO
+
+IF OBJECT_ID('dbo.campaign_clicks', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.campaign_clicks (
+        click_id         INT IDENTITY(1,1) PRIMARY KEY,
+        send_id          INT NOT NULL FOREIGN KEY REFERENCES dbo.campaign_sends(send_id),
+        clicked_at       DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+        target_url       NVARCHAR(500) NULL,
+        ip_address       NVARCHAR(45) NULL,
+        user_agent       NVARCHAR(500) NULL
+    );
+END
+GO
+
 PRINT 'Schema created successfully.';
