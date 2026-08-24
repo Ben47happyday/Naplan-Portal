@@ -10,6 +10,7 @@ venv/
 .env
 .env.*
 !.env.example
+git_token.txt
 
 # Marketing credentials & PII — never commit
 marketing/scret.txt
