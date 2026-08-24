@@ -13,11 +13,13 @@
     "address": "Your registered business address (required for compliance footer)"
   },
   "campaign": {
+    "name": "REPLACE_WITH_CAMPAIGN_NAME",
     "csv_path": "../database/naplan_sydney_agent_leads.csv",
     "name_column": "Agent Name",
     "email_column": "Email",
     "template_path": "email_template.html",
     "learn_more_url": "REPLACE_WITH_NAPLAN_PORTAL_URL",
+    "tracking_base_url": "REPLACE_WITH_BACKEND_BASE_URL",
     "subject": "Licensed NAPLAN practice content for {agent_name}",
     "delay_seconds": 5,
     "log_path": "sent_log.csv",

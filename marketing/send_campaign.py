@@ -36,12 +36,17 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 GRAPH_TOKEN_URL = "https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
 GRAPH_SEND_MAIL_URL = "https://graph.microsoft.com/v1.0/users/{sender}/sendMail"
+
+# Imported lazily inside get_db_connection() so dry-run/preview mode never
+# needs pyodbc or a live database — only --send does.
+DATABASE_DIR = Path(__file__).resolve().parent.parent / "database"
 
 
 def load_config(config_path: Path) -> dict:
@@ -163,6 +168,69 @@ def send_via_graph(token: str, sender_email: str, sender_name: str, reply_to: st
         raise RuntimeError(f"{e.code} {e.reason}: {body_text}")
 
 
+def get_db_connection():
+    """Lazily imports database/config.py so dry-run/preview never requires
+    pyodbc or a reachable SQL Server — only --send does."""
+    if str(DATABASE_DIR) not in sys.path:
+        sys.path.insert(0, str(DATABASE_DIR))
+    from config import get_connection  # noqa: E402
+    return get_connection()
+
+
+def get_or_create_campaign(conn, name: str, subject_template: str, template_path: str,
+                            sender_email: str, learn_more_url: str) -> int:
+    cursor = conn.cursor()
+    cursor.execute("SELECT campaign_id FROM dbo.campaigns WHERE name = ?", name)
+    row = cursor.fetchone()
+    if row:
+        return row[0]
+    cursor.execute(
+        """
+        INSERT INTO dbo.campaigns
+            (name, subject_template, template_path, sender_email, learn_more_url, status)
+        OUTPUT INSERTED.campaign_id
+        VALUES (?, ?, ?, ?, ?, 'sending')
+        """,
+        name, subject_template, template_path, sender_email, learn_more_url,
+    )
+    campaign_id = cursor.fetchone()[0]
+    conn.commit()
+    return campaign_id
+
+
+def get_or_create_receiver(conn, org_name: str, email: str) -> int:
+    cursor = conn.cursor()
+    cursor.execute("SELECT receiver_id FROM dbo.campaign_receivers WHERE email = ?", email)
+    row = cursor.fetchone()
+    if row:
+        return row[0]
+    cursor.execute(
+        """
+        INSERT INTO dbo.campaign_receivers (org_name, email, source)
+        OUTPUT INSERTED.receiver_id
+        VALUES (?, ?, ?)
+        """,
+        org_name, email, "send_campaign.py (ad-hoc, not in leads CSV)",
+    )
+    receiver_id = cursor.fetchone()[0]
+    conn.commit()
+    return receiver_id
+
+
+def record_send(conn, campaign_id: int, receiver_id: int, tracking_token: str,
+                 status: str, error_detail: str = None) -> None:
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        INSERT INTO dbo.campaign_sends
+            (campaign_id, receiver_id, tracking_token, status, error_detail)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        campaign_id, receiver_id, tracking_token, status, error_detail,
+    )
+    conn.commit()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--config", default="config.json", help="Path to config JSON (default: config.json)")
@@ -222,10 +290,13 @@ def main() -> None:
 
     template = template_path.read_text(encoding="utf-8")
 
+    tracking_base_url = campaign.get("tracking_base_url", "").rstrip("/")
+
     if not args.send:
         print("\n--- DRY RUN (no emails will be sent; pass --send to actually send) ---\n")
         out_lines = []
         for lead in leads:
+            preview_token = "PREVIEW-" + uuid.uuid4().hex[:12]
             subject = render(campaign["subject"], agent_name=lead["name"])
             body = render(
                 template,
@@ -234,7 +305,8 @@ def main() -> None:
                 reply_to=sender["reply_to"],
                 business_name=business["name"],
                 business_address=business["address"],
-                learn_more_url=campaign["learn_more_url"],
+                tracking_pixel_url=f"{tracking_base_url}/t/open/{preview_token}.png",
+                tracking_click_url=f"{tracking_base_url}/t/click/{preview_token}",
             )
             out_lines.append(f"To: {lead['email']}\nSubject: {subject}\n\n{body}\n{'=' * 60}\n")
         text = "\n".join(out_lines)
@@ -266,8 +338,15 @@ def main() -> None:
 
     token = get_graph_token(auth_cfg["tenant_id"], auth_cfg["client_id"], client_secret)
 
+    conn = get_db_connection()
+    campaign_id = get_or_create_campaign(
+        conn, campaign["name"], campaign["subject"], campaign["template_path"],
+        sender["email"], campaign["learn_more_url"],
+    )
+
     sent_count = 0
     for lead in leads:
+        tracking_token = str(uuid.uuid4())
         subject = render(campaign["subject"], agent_name=lead["name"])
         body = render(
             template,
@@ -276,18 +355,23 @@ def main() -> None:
             reply_to=sender["reply_to"],
             business_name=business["name"],
             business_address=business["address"],
-            learn_more_url=campaign["learn_more_url"],
+            tracking_pixel_url=f"{tracking_base_url}/t/open/{tracking_token}.png",
+            tracking_click_url=f"{tracking_base_url}/t/click/{tracking_token}",
         )
+        receiver_id = get_or_create_receiver(conn, lead["name"], lead["email"])
         try:
             send_via_graph(token, sender["email"], sender["name"], sender["reply_to"], lead["email"], subject, body)
             append_log(log_path, lead["email"], lead["name"], "sent")
+            record_send(conn, campaign_id, receiver_id, tracking_token, "sent")
             sent_count += 1
             print(f"Sent to {lead['email']}")
         except Exception as e:
             append_log(log_path, lead["email"], lead["name"], "failed", str(e))
+            record_send(conn, campaign_id, receiver_id, tracking_token, "failed", str(e))
             print(f"FAILED to {lead['email']}: {e}", file=sys.stderr)
         time.sleep(campaign.get("delay_seconds", 5))
 
+    conn.close()
     print(f"\nDone. Sent {sent_count}/{len(leads)}. Log: {log_path}")
 
 
