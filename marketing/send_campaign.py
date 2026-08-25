@@ -231,6 +231,15 @@ def record_send(conn, campaign_id: int, receiver_id: int, tracking_token: str,
     conn.commit()
 
 
+def mark_campaign_completed(conn, campaign_id: int) -> None:
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE dbo.campaigns SET status = 'completed' WHERE campaign_id = ? AND status = 'sending'",
+        campaign_id,
+    )
+    conn.commit()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--config", default="config.json", help="Path to config JSON (default: config.json)")
@@ -371,6 +380,7 @@ def main() -> None:
             print(f"FAILED to {lead['email']}: {e}", file=sys.stderr)
         time.sleep(campaign.get("delay_seconds", 5))
 
+    mark_campaign_completed(conn, campaign_id)
     conn.close()
     print(f"\nDone. Sent {sent_count}/{len(leads)}. Log: {log_path}")
 
