@@ -48,6 +48,12 @@ GRAPH_SEND_MAIL_URL = "https://graph.microsoft.com/v1.0/users/{sender}/sendMail"
 # needs pyodbc or a live database — only --send does.
 DATABASE_DIR = Path(__file__).resolve().parent.parent / "database"
 
+# Policy guardrail (2026-08-25): real campaign sends are on hold until
+# explicitly lifted — only this test address may receive an actual --send.
+# Dry-run/preview is unrestricted since it never leaves the machine. Remove
+# this restriction only on explicit instruction to run the real campaign.
+ALLOWED_SEND_RECIPIENTS = {"sqlpython@hotmail.com"}
+
 
 def load_config(config_path: Path) -> dict:
     with open(config_path, encoding="utf-8") as f:
@@ -296,6 +302,17 @@ def main() -> None:
     if not leads:
         print("Nothing to do.")
         return
+
+    if args.send:
+        blocked = [l for l in leads if l["email"].lower() not in ALLOWED_SEND_RECIPIENTS]
+        if blocked:
+            raise SystemExit(
+                "Refusing to send: real campaign sends are currently restricted to "
+                f"{', '.join(sorted(ALLOWED_SEND_RECIPIENTS))} only (policy guardrail, not a bug).\n"
+                f"{len(blocked)} recipient(s) in this run fall outside that list, e.g. {blocked[0]['email']}.\n"
+                "Dry-run/preview is unaffected — only --send is blocked. "
+                "Edit ALLOWED_SEND_RECIPIENTS in send_campaign.py once sending the real campaign is authorized."
+            )
 
     template = template_path.read_text(encoding="utf-8")
 
