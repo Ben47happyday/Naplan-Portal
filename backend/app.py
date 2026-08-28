@@ -9,13 +9,14 @@ Usage:
     -> http://localhost:5000
 """
 
+import base64
 import json
 import os
 import sys
 from contextlib import contextmanager
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request, send_from_directory, session
+from flask import Flask, jsonify, redirect, request, send_from_directory, session
 from werkzeug.security import check_password_hash, generate_password_hash
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
@@ -748,6 +749,59 @@ def numeracy_practice_set():
         conn.commit()
 
     return jsonify({"test_id": test_id})
+
+
+# ------------------------------------------------------------------
+# Marketing: campaign open/click tracking
+# ------------------------------------------------------------------
+
+# 1x1 transparent PNG served as the open-tracking pixel.
+_TRACKING_PIXEL = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+)
+
+
+@app.route("/t/open/<uuid:token>.png")
+def track_open(token):
+    with db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT send_id FROM dbo.campaign_sends WHERE tracking_token = ?", str(token))
+        row = cursor.fetchone()
+        if row is not None:
+            cursor.execute(
+                "INSERT INTO dbo.campaign_opens (send_id, ip_address, user_agent) VALUES (?, ?, ?)",
+                row[0], request.remote_addr, (request.headers.get("User-Agent") or "")[:500],
+            )
+            conn.commit()
+    resp = app.response_class(_TRACKING_PIXEL, mimetype="image/png")
+    resp.headers["Cache-Control"] = "no-store"
+    return resp
+
+
+@app.route("/t/click/<uuid:token>")
+def track_click(token):
+    with db() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT s.send_id, c.learn_more_url
+            FROM dbo.campaign_sends s
+            JOIN dbo.campaigns c ON c.campaign_id = s.campaign_id
+            WHERE s.tracking_token = ?
+            """,
+            str(token),
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return redirect("/practice.html", code=302)
+
+        send_id, target_url = row[0], (row[1] or "/practice.html")
+        cursor.execute(
+            "INSERT INTO dbo.campaign_clicks (send_id, target_url, ip_address, user_agent) VALUES (?, ?, ?, ?)",
+            send_id, target_url, request.remote_addr, (request.headers.get("User-Agent") or "")[:500],
+        )
+        conn.commit()
+    return redirect(target_url, code=302)
 
 
 if __name__ == "__main__":
