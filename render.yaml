@@ -1,15 +1,16 @@
 # Render.com Blueprint — deploys just the web portal. The database is
 # deliberately NOT provisioned here: Render's free Postgres tier expires
 # 30 days after creation (14-day grace period, then the data is deleted),
-# which makes it a trap for anything meant to stay live. Neon's free
-# Postgres tier has no such expiry (scale-to-zero instead — the compute
-# pauses when idle and wakes on the next query, storage/data persist
-# indefinitely), so pair this free Render web service with a free Neon
-# database instead. See README.md for the $0/month setup.
+# which makes it a trap for anything meant to stay live. Instead, pair
+# this free Render web service with a free Supabase Postgres project in
+# the Sydney region (AU-hosted data, matches this app's Australian
+# audience). See README.md for the $0/month setup, including the free
+# uptime pinger needed to stop both sides going idle (Render sleeps after
+# 15 min with no traffic; Supabase pauses after 7 days with no DB query).
 #
 # To use: push this repo to GitHub, then in the Render dashboard choose
 # "New > Blueprint" and point it at the repo. You'll be prompted to paste
-# in DATABASE_URL (from Neon) since it isn't set here.
+# in DATABASE_URL (from Supabase) since it isn't set here.
 services:
   - type: web
     name: naplan-prep-hub
@@ -17,6 +18,7 @@ services:
     plan: free
     buildCommand: pip install -r backend/requirements.txt
     startCommand: gunicorn --chdir backend app:app --bind 0.0.0.0:$PORT
+    healthCheckPath: /healthz
     envVars:
       - key: FLASK_SECRET_KEY
         generateValue: true

@@ -59,6 +59,19 @@ def index():
     return send_from_directory(FRONTEND_DIR, "index.html")
 
 
+@app.route("/healthz")
+def healthz():
+    """Trivial DB round-trip for an external uptime pinger to hit. "/" is
+    a static file and never touches the database, so a pinger aimed there
+    would keep this web service awake but wouldn't stop a free-tier
+    database (e.g. Supabase) from pausing after a week of no DB activity —
+    this endpoint exists so one ping covers both."""
+    with db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+    return jsonify({"status": "ok"})
+
+
 # ------------------------------------------------------------------
 # Auth
 # ------------------------------------------------------------------
