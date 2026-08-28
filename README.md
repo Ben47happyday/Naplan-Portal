@@ -29,19 +29,46 @@ python database/migrate_to_postgres.py
 
 ## Deploying the web portal online
 
-`Procfile` + `render.yaml` are set up for [Render.com](https://render.com)
-as a default — a free web service plus a free managed Postgres database,
-provisioned together from one Blueprint. This is a starting point, not a
-requirement: any host that runs a Python/Flask app behind gunicorn, pointed
-at a Postgres `DATABASE_URL`, works (Railway, Fly.io, Azure App Service,
-etc.), and the Postgres database itself can just as easily live on Neon,
-Supabase, or RDS instead of Render's.
+**Recommended for launch: Render (free web) + Neon (free Postgres) = $0/month, no expiry.**
+Render's own free Postgres tier auto-deletes 30 days after creation, which
+makes it unsuitable for anything meant to stay live — so `render.yaml`
+deploys only the web service; the database is a separate free Neon project.
+Neon has no time limit: its compute pauses when idle (a few seconds' delay
+on the first request after a quiet period) but data and the database itself
+persist indefinitely. The tradeoff on this $0 setup is cold starts on both
+sides — Render's free web service sleeps after 15 minutes idle (~30-60s to
+wake), and Neon's compute does something similar. Fine for a pre-launch or
+low-traffic site; not something you'd want for a paid, latency-sensitive
+product.
 
-To deploy on Render:
-1. Push this repo to GitHub.
-2. In the Render dashboard: **New → Blueprint**, point it at the repo.
-3. Render provisions the web service and the Postgres database from
-   `render.yaml` and wires `DATABASE_URL` between them automatically.
+To deploy:
+1. Create a free Neon project at [neon.tech](https://neon.tech) and copy its
+   Postgres connection string.
+2. Push this repo to GitHub.
+3. In the Render dashboard: **New → Blueprint**, point it at the repo, and
+   when prompted for `DATABASE_URL`, paste in the Neon connection string.
 4. Once it's live, run `database/create_schema.py` (and
    `migrate_to_postgres.py` if migrating existing data) with `DATABASE_URL`
-   set to the new hosted database's connection string.
+   set to that same Neon connection string.
+
+### If/when it needs to be always-on
+
+Cold starts go away for **$7/month**: upgrade the Render web service to its
+Starter plan (Neon's free tier can stay — its wake-up latency is much
+shorter and only affects the first query after a quiet spell, not the whole
+page). Below is what was actually compared before landing on this setup —
+prices as surveyed August 2026, always worth re-checking before committing:
+
+| Option | Cost | Notes |
+|---|---|---|
+| **Render free + Neon free** (recommended) | **$0/mo** | No expiry, but both sides cold-start after idling |
+| Render Starter ($7) + Neon free | $7/mo | Web always-on, DB still free & scale-to-zero |
+| Render free + Render Postgres free | $0/mo *(30 days only)* | Render's free DB is deleted after a 30-day + 14-day grace window — avoid for anything long-lived |
+| Railway Hobby | $5/mo minimum, usage-billed on top | A Postgres instance alone tends to burn through the $5 credit within days; ends up costing more than it looks |
+| Fly.io (web + Postgres) | ~$4-5/mo minimum | No free tier at all in 2026; smallest always-on VM + smallest Postgres, pay-as-you-go from day one |
+| Render Starter + Render Postgres Basic | $13/mo | Both always-on, no cold starts anywhere |
+
+This app is small (a Flask app serving static pages + a lightweight JSON
+API, low expected traffic pre-launch), so the free/near-free tiers are
+genuinely adequate — no need to default to a paid always-on setup before
+there's traffic that needs it.
