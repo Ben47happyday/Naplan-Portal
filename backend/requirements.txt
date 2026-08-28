@@ -1,5 +1,5 @@
 flask
-pyodbc
+psycopg2-binary
 pyspellchecker
 python-dotenv
 gunicorn

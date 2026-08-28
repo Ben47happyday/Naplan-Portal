@@ -1,6 +1,6 @@
 """
-Runs schema.sql against the naplan-portal database using the connection
-defined in config.py (Windows Authentication).
+Runs schema.sql against the naplan-portal PostgreSQL database using the
+connection defined in config.py (DATABASE_URL).
 
 Usage:
     python create_schema.py
@@ -16,20 +16,17 @@ def run_schema():
     with open(SCHEMA_FILE, "r", encoding="utf-8") as f:
         sql_script = f.read()
 
-    # Split on GO batch separators, like SSMS/sqlcmd does
-    batches = [b.strip() for b in sql_script.split("\nGO") if b.strip()]
-
     conn = get_connection_autocommit()
     cursor = conn.cursor()
-    for batch in batches:
-        try:
-            cursor.execute(batch)
-        except Exception as exc:
-            print("Error running batch:")
-            print(batch[:200])
-            raise exc
-    conn.close()
-    print(f"Schema applied: {len(batches)} batches executed.")
+    try:
+        cursor.execute(sql_script)
+    except Exception as exc:
+        print("Error running schema.sql:")
+        print(exc)
+        raise
+    finally:
+        conn.close()
+    print("Schema applied successfully.")
 
 
 if __name__ == "__main__":
