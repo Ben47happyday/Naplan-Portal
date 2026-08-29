@@ -69,16 +69,16 @@ def get_or_create_ref_data(conn):
 
     for year_id, label in YEAR_LEVELS:
         cursor.execute(
-            "IF NOT EXISTS (SELECT 1 FROM dbo.year_levels WHERE year_level_id = ?) "
-            "INSERT INTO dbo.year_levels (year_level_id, label) VALUES (?, ?)",
-            year_id, year_id, label,
+            "INSERT INTO dbo.year_levels (year_level_id, label) VALUES (?, ?) "
+            "ON CONFLICT (year_level_id) DO NOTHING",
+            year_id, label,
         )
 
     for code, name in DOMAINS:
         cursor.execute(
-            "IF NOT EXISTS (SELECT 1 FROM dbo.domains WHERE code = ?) "
-            "INSERT INTO dbo.domains (code, name) VALUES (?, ?)",
-            code, code, name,
+            "INSERT INTO dbo.domains (code, name) VALUES (?, ?) "
+            "ON CONFLICT (code) DO NOTHING",
+            code, name,
         )
 
     conn.commit()
@@ -100,8 +100,8 @@ def seed_questions(conn, domain_map, year_level_id=5):
                 (year_level_id, domain_id, strand, difficulty, question_type,
                  prompt, option_a, option_b, option_c, option_d,
                  correct_answer, explanation, status)
-            OUTPUT INSERTED.question_id
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'published')
+            RETURNING question_id
             """,
             year_level_id, domain_id, strand, diff,
             "short_answer" if a is None else "multiple_choice",
@@ -131,8 +131,8 @@ def seed_tests(conn, domain_map, question_ids, year_level_id=5):
         cursor.execute(
             """
             INSERT INTO dbo.tests (year_level_id, domain_id, title, test_type, time_limit_mins, status)
-            OUTPUT INSERTED.test_id
             VALUES (?, ?, ?, 'practice', ?, 'published')
+            RETURNING test_id
             """,
             year_level_id, domain_map[code], title, 20,
         )
@@ -147,8 +147,8 @@ def seed_tests(conn, domain_map, question_ids, year_level_id=5):
     cursor.execute(
         """
         INSERT INTO dbo.tests (year_level_id, domain_id, title, test_type, time_limit_mins, status)
-        OUTPUT INSERTED.test_id
         VALUES (?, NULL, ?, 'diagnostic', ?, 'published')
+        RETURNING test_id
         """,
         year_level_id, "Year 5 level check", 20,
     )

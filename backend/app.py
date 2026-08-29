@@ -2,7 +2,7 @@
 NAPLAN Prep Hub — backend API.
 
 Serves the Stage 1 static frontend and a small JSON API backed by the
-naplan-portal SQL Server database (see database/config.py, schema.sql).
+naplan-portal PostgreSQL database (see database/config.py, schema.sql).
 
 Usage:
     python app.py
@@ -59,6 +59,19 @@ def index():
     return send_from_directory(FRONTEND_DIR, "index.html")
 
 
+@app.route("/healthz")
+def healthz():
+    """Trivial DB round-trip for an external uptime pinger to hit. "/" is
+    a static file and never touches the database, so a pinger aimed there
+    would keep this web service awake but wouldn't stop a free-tier
+    database (e.g. Supabase) from pausing after a week of no DB activity —
+    this endpoint exists so one ping covers both."""
+    with db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+    return jsonify({"status": "ok"})
+
+
 # ------------------------------------------------------------------
 # Auth
 # ------------------------------------------------------------------
@@ -108,8 +121,8 @@ def signup():
         cursor.execute(
             """
             INSERT INTO dbo.students (display_name, year_level_id, email, password_hash)
-            OUTPUT INSERTED.student_id
             VALUES (?, ?, ?, ?)
+            RETURNING student_id
             """,
             display_name, year_level, email, password_hash,
         )
@@ -403,12 +416,13 @@ def _build_feedback(cursor, attempt_id, year_level_id):
     current_edition = _current_edition(cursor)
     cursor.execute(
         """
-        SELECT TOP 1 t.test_id, t.title
+        SELECT t.test_id, t.title
         FROM dbo.tests t
         JOIN dbo.domains d ON d.domain_id = t.domain_id
         WHERE t.year_level_id = ? AND d.code = ? AND t.test_type = 'practice' AND t.status = 'published'
           AND (t.content_year = ? OR t.content_year IS NULL)
-        ORDER BY NEWID()
+        ORDER BY RANDOM()
+        LIMIT 1
         """,
         year_level_id, worst["domain_code"], current_edition,
     )
@@ -456,7 +470,7 @@ def submit_test(test_id):
 
         cursor.execute(
             "INSERT INTO dbo.attempts (student_id, test_id, completed_at) "
-            "OUTPUT INSERTED.attempt_id VALUES (?, ?, SYSUTCDATETIME())",
+            "VALUES (?, ?, NOW()) RETURNING attempt_id",
             student["student_id"], test_id,
         )
         attempt_id = cursor.fetchone()[0]
@@ -722,11 +736,12 @@ def numeracy_practice_set():
 
         cursor.execute(
             """
-            SELECT TOP (?) question_id FROM dbo.questions
+            SELECT question_id FROM dbo.questions
             WHERE year_level_id = ? AND domain_id = ? AND strand = ? AND status = 'published'
-            ORDER BY NEWID()
+            ORDER BY RANDOM()
+            LIMIT ?
             """,
-            limit, year, numeracy_domain_id, strand,
+            year, numeracy_domain_id, strand, limit,
         )
         question_ids = [r[0] for r in cursor.fetchall()]
         if not question_ids:
@@ -735,8 +750,8 @@ def numeracy_practice_set():
         cursor.execute(
             """
             INSERT INTO dbo.tests (year_level_id, domain_id, title, test_type, time_limit_mins, status)
-            OUTPUT INSERTED.test_id
             VALUES (?, ?, ?, 'skill_practice', ?, 'published')
+            RETURNING test_id
             """,
             year, numeracy_domain_id, title, max(10, limit * 2),
         )

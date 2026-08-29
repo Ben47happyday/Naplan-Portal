@@ -65,12 +65,14 @@
     }).join("");
 
     container.innerHTML = `
-      <table class="history-table">
-        <thead>
-          <tr><th>Date</th><th>Test</th><th>Domain</th><th>Score</th><th>Result</th><th></th></tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
+      <div class="table-scroll">
+        <table class="history-table">
+          <thead>
+            <tr><th>Date</th><th>Test</th><th>Domain</th><th>Score</th><th>Result</th><th></th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
     `;
 
     container.querySelectorAll(".view-link").forEach((link) => {

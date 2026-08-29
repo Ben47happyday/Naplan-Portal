@@ -11,6 +11,7 @@ venv/
 .env.*
 !.env.example
 git_token.txt
+database/supabase_config.txt
 
 # Marketing credentials & PII — never commit
 marketing/scret.txt

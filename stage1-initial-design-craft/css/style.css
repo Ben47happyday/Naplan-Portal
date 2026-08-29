@@ -801,3 +801,31 @@ body.understand-page .info-card .meta + .meta { margin-left: 6px; }
   .nav-link { padding: 8px 10px; }
   .nav-link i { font-size: 19px; }
 }
+
+/* Phone widths: brand + nav + auth no longer fit on one row, so wrap
+   into a second centred row instead of clipping or overflowing. */
+@media (max-width: 560px) {
+  .site-header .container {
+    flex-wrap: wrap;
+    row-gap: 10px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+  .brand { width: 100%; justify-content: center; }
+  nav.main-nav {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 8px;
+  }
+  .container { padding: 0 16px; }
+  .page-section { padding: 28px 16px; }
+  .hero { padding: 40px 16px 56px; }
+  /* iOS Safari zooms the page on focus of any input under 16px */
+  .auth-form input, .auth-form select, .question-card textarea {
+    font-size: 16px;
+  }
+  #edition-select { font-size: 16px !important; }
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .history-table { min-width: 480px; }
+}
