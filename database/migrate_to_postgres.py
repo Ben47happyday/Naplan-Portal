@@ -23,6 +23,7 @@ import argparse
 import datetime
 import uuid
 
+import psycopg2.extras
 import pyodbc
 
 from config import get_connection as get_target_connection
@@ -82,13 +83,26 @@ def migrate_table(src_conn, dst_conn, table, pk_col):
         return
 
     col_list = ", ".join(columns)
-    placeholders = ", ".join(["?"] * len(columns))
-    insert_sql = f"INSERT INTO {table} ({col_list}) VALUES ({placeholders}) ON CONFLICT DO NOTHING"
+    placeholders = ", ".join(["%s"] * len(columns))
+    # OVERRIDING SYSTEM VALUE is required for the identity primary keys, which
+    # are GENERATED ALWAYS (see schema.sql) and otherwise reject the explicit id
+    # values — and those must be preserved here or every foreign key breaks.
+    # Only valid on tables that actually have an identity column, which is
+    # exactly the set with a pk_col (year_levels and test_questions do not).
+    overriding = "OVERRIDING SYSTEM VALUE " if pk_col else ""
+    insert_sql = (
+        f"INSERT INTO {table} ({col_list}) {overriding}"
+        f"VALUES ({placeholders}) ON CONFLICT DO NOTHING"
+    )
 
+    # execute_batch, not executemany: psycopg2's executemany issues one network
+    # round-trip per row, which against a hosted database (~11k rows to a remote
+    # region) takes hours. Batching many INSERTs per round-trip cuts that to
+    # well under a minute.
     dst_cursor = dst_conn.cursor()
-    dst_cursor.executemany(insert_sql, rows)
+    psycopg2.extras.execute_batch(dst_cursor, insert_sql, rows, page_size=500)
     dst_conn.commit()
-    print(f"{table}: migrated {len(rows)} rows.")
+    print(f"{table}: migrated {len(rows)} rows.", flush=True)
 
     if pk_col:
         dst_cursor.execute(

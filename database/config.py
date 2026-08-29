@@ -54,6 +54,12 @@ class Cursor(psycopg2.extras.NamedTupleCursor):
     def execute(self, sql, *params):
         if len(params) == 1 and isinstance(params[0], (list, tuple)):
             params = params[0]
+        # Already-rendered SQL arrives as bytes from psycopg2.extras helpers
+        # (execute_batch mogrifies each row, then executes the joined result).
+        # Pass those straight through — there are no '?' left to translate,
+        # and str.replace would raise on bytes.
+        if isinstance(sql, bytes):
+            return super().execute(sql, params if params else None)
         pg_sql = sql.replace("?", "%s")
         return super().execute(pg_sql, params if params else None)
 
