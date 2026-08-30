@@ -611,7 +611,9 @@ body.understand-page .info-card .meta + .meta { margin-left: 6px; }
 
 @media (max-width: 720px) {
   .info-section-head { flex-wrap: wrap; }
-  .more-details-btn { margin-left: 64px; }
+  /* flex-basis:100% forces the button onto its own line instead of
+     squeezing info-section-copy's flexible text column to near-zero */
+  .more-details-btn { flex-basis: 100%; margin-left: 64px; margin-top: 4px; }
 }
 
 /* FAQ accordion — each question expands independently */
@@ -742,6 +744,13 @@ body.understand-page .info-card .meta + .meta { margin-left: 6px; }
 }
 .quiz-category[open] .chevron { transform: rotate(180deg); }
 
+/* Same squeeze risk as .quiz-row / .info-section-head: the fixed-width
+   count badge + chevron can crush category-copy's text on narrow phones. */
+@media (max-width: 480px) {
+  .quiz-category-header { flex-wrap: wrap; row-gap: 4px; }
+  .quiz-category-header .category-count { flex-basis: 100%; margin-left: 52px; }
+}
+
 .quiz-category-body {
   border-top: 0.5px solid var(--border);
   padding: 4px 12px 10px;
@@ -783,8 +792,11 @@ body.understand-page .info-card .meta + .meta { margin-left: 6px; }
 .quiz-row:hover .go-arrow { transform: translateX(3px); color: var(--orange); }
 
 @media (max-width: 720px) {
-  .quiz-row { flex-wrap: wrap; }
-  .quiz-row .quiz-meta { flex-direction: row; align-items: center; margin-left: 52px; }
+  .quiz-row { flex-wrap: wrap; row-gap: 4px; }
+  /* flex-basis:100% forces meta badges onto their own line instead of
+     squeezing quiz-copy's flexible text column to near-zero */
+  .quiz-row .quiz-meta { flex-basis: 100%; flex-direction: row; align-items: center; margin-left: 52px; }
+  .quiz-row .go-arrow { display: none; }
 }
 
 @media (max-width: 720px) {
