@@ -77,10 +77,8 @@ def main():
     # set on R/W/LC rows (leaves Numeracy's media_url alone).
     cursor.execute(
         """
-        UPDATE q SET q.media_url = NULL
-        FROM dbo.questions q
-        JOIN dbo.domains d ON d.domain_id = q.domain_id
-        WHERE d.code IN ('R', 'W', 'LC')
+        UPDATE dbo.questions SET media_url = NULL
+        WHERE domain_id IN (SELECT domain_id FROM dbo.domains WHERE code IN ('R', 'W', 'LC'))
         """
     )
     conn.commit()
