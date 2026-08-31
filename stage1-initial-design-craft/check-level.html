@@ -85,7 +85,7 @@
     const btn = document.getElementById("start-check-btn");
     btn.textContent = "Start the check";
 
-    fetch(`/api/tests?year=${YEAR}&type=diagnostic`)
+    fetch(apiUrl(`/api/tests?year=${YEAR}&type=diagnostic`))
       .then((res) => res.json())
       .then((tests) => {
         if (tests.length) {

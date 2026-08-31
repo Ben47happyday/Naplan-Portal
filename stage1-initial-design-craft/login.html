@@ -64,7 +64,7 @@
     const errorBox = document.getElementById("error-box");
     errorBox.classList.remove("visible");
 
-    fetch("/api/auth/login", {
+    fetch(apiUrl("/api/auth/login"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

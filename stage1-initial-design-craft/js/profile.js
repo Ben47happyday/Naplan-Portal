@@ -30,7 +30,7 @@
   }
 
   function loadHistory() {
-    fetch("/api/me/attempts")
+    fetch(apiUrl("/api/me/attempts"))
       .then((res) => res.json())
       .then(renderHistory)
       .catch(() => {
@@ -92,7 +92,7 @@
     if (cell.dataset.loaded) return;
 
     cell.innerHTML = "Loading…";
-    fetch(`/api/attempts/${attemptId}`)
+    fetch(apiUrl(`/api/attempts/${attemptId}`))
       .then((res) => res.json())
       .then((data) => {
         cell.dataset.loaded = "true";

@@ -48,7 +48,7 @@
 
   function loadStrands() {
     strandsLoaded = true;
-    fetch(`/api/numeracy-strands?year=${YEAR}`)
+    fetch(apiUrl(`/api/numeracy-strands?year=${YEAR}`))
       .then((res) => res.json())
       .then((strands) => {
         strandChips.innerHTML = strands.map((s) =>
@@ -68,7 +68,7 @@
       }
       const originalText = chipEl.textContent;
       chipEl.textContent = "Loading…";
-      fetch("/api/numeracy/practice-set", {
+      fetch(apiUrl("/api/numeracy/practice-set"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ year_level: YEAR, strand, limit: 8 }),
@@ -85,7 +85,7 @@
   }
 
   function loadEditions() {
-    fetch(`/api/editions?year=${YEAR}`)
+    fetch(apiUrl(`/api/editions?year=${YEAR}`))
       .then((res) => res.json())
       .then((editions) => {
         editionSelect.innerHTML = editions.map((e) => {
@@ -106,7 +106,7 @@
 
   function loadTests() {
     list.innerHTML = "<p class=\"lede\">Loading practice tests…</p>";
-    const url = new URL("/api/tests", window.location.origin);
+    const url = new URL(apiUrl("/api/tests"), window.location.origin);
     url.searchParams.set("year", YEAR);
     url.searchParams.set("type", "practice");
     const domainCode = currentDomain();

@@ -28,7 +28,7 @@
   });
 
   function loadQuiz() {
-    fetch(`/api/tests/${testId}`)
+    fetch(apiUrl(`/api/tests/${testId}`))
       .then((res) => {
         if (!res.ok) throw new Error("Test not found");
         return res.json();
@@ -122,7 +122,7 @@
     }
 
     feedbackEl.innerHTML = `<p class="meta">Checking…</p>`;
-    fetch(`/api/questions/${questionId}/check`, {
+    fetch(apiUrl(`/api/questions/${questionId}/check`), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ answer: selected.value }),
@@ -153,7 +153,7 @@
       }
     });
 
-    fetch(`/api/tests/${test.test_id}/submit`, {
+    fetch(apiUrl(`/api/tests/${test.test_id}/submit`), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ answers }),

@@ -1,12 +1,21 @@
 // Shared auth-aware header: swaps the Log in/Sign up links for a
 // profile/logout link when a session is active. Include on every page.
+
+// Resolves API paths against wherever this app is actually mounted —
+// domain root in dev, or a sub-path (e.g. /solutions/naplanhub/) in
+// production — instead of hardcoding a root-absolute "/api/...".
+const NAPLAN_BASE_PATH = location.pathname.replace(/[^/]*$/, "");
+function apiUrl(path) {
+  return NAPLAN_BASE_PATH + path.replace(/^\//, "");
+}
+
 const NaplanAuth = (function () {
   function me() {
-    return fetch("/api/auth/me").then((res) => (res.ok ? res.json() : null));
+    return fetch(apiUrl("/api/auth/me")).then((res) => (res.ok ? res.json() : null));
   }
 
   function logout() {
-    return fetch("/api/auth/logout", { method: "POST" });
+    return fetch(apiUrl("/api/auth/logout"), { method: "POST" });
   }
 
   function renderNav() {

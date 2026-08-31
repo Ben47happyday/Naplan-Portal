@@ -30,7 +30,7 @@ from config import get_connection
 import text_diagrams as td
 
 IMAGES_DIR = os.path.join(os.path.dirname(__file__), "..", "stage1-initial-design-craft", "images", "questions")
-MEDIA_URL_PREFIX = "/images/questions"
+MEDIA_URL_PREFIX = "images/questions"  # relative: resolves under any mount path
 
 os.makedirs(IMAGES_DIR, exist_ok=True)
 

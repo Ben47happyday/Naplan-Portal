@@ -174,7 +174,7 @@ def theme_nature_svg(seed=0):
     img_y = (fox_y + 20) - img_h
     scene += (
         f'<ellipse cx="{fox_x:.1f}" cy="{fox_y+18:.1f}" rx="34" ry="7" fill="{INK}" fill-opacity="0.15"/>'
-        f'<image href="/images/owl-mascot.png" x="{img_x:.1f}" y="{img_y:.1f}" width="{img_w:.1f}" height="{img_h:.1f}" '
+        f'<image href="../owl-mascot.png" x="{img_x:.1f}" y="{img_y:.1f}" width="{img_w:.1f}" height="{img_h:.1f}" '
         f'preserveAspectRatio="xMidYMax meet"/>'
     )
     if rnd.random() > 0.4:
