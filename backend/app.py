@@ -26,8 +26,13 @@ from config import get_connection  # noqa: E402
 from writing_scorer import score_writing  # noqa: E402
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "stage1-initial-design-craft")
+COMPANY_DIR = os.path.join(os.path.dirname(__file__), "..", "company-site")
 
-app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
+# static_folder=None: two separate sites are served from this one app (the
+# Zcube company homepage at the domain root, NAPLAN Hub under
+# /solutions/naplanhub/), each via its own explicit send_from_directory
+# routes below, rather than Flask's single built-in static mount.
+app = Flask(__name__, static_folder=None)
 # Dev-only fallback secret so sessions survive a restart without extra setup.
 # Override with a real secret via FLASK_SECRET_KEY before any real deployment.
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-naplan-prep-hub-secret-change-me")
@@ -51,12 +56,31 @@ def db():
 
 
 # ------------------------------------------------------------------
-# Static frontend
+# Static sites — Zcube company homepage at the root, NAPLAN Hub as a
+# sample solution nested under /solutions/naplanhub/. The path-converter
+# catch-alls below are correctly outranked by every more-specific static
+# route in this file (Werkzeug sorts by rule specificity, not
+# registration order), so they never shadow /api/..., /healthz or /t/...
 # ------------------------------------------------------------------
 
 @app.route("/")
-def index():
+def company_index():
+    return send_from_directory(COMPANY_DIR, "index.html")
+
+
+@app.route("/<path:filename>")
+def company_static(filename):
+    return send_from_directory(COMPANY_DIR, filename)
+
+
+@app.route("/solutions/naplanhub/")
+def naplan_index():
     return send_from_directory(FRONTEND_DIR, "index.html")
+
+
+@app.route("/solutions/naplanhub/<path:filename>")
+def naplan_static(filename):
+    return send_from_directory(FRONTEND_DIR, filename)
 
 
 @app.route("/healthz")
@@ -96,7 +120,7 @@ def _current_student(cursor):
     }
 
 
-@app.route("/api/auth/signup", methods=["POST"])
+@app.route("/solutions/naplanhub/api/auth/signup", methods=["POST"])
 def signup():
     body = request.get_json(force=True) or {}
     display_name = (body.get("display_name") or "").strip()
@@ -138,7 +162,7 @@ def signup():
     })
 
 
-@app.route("/api/auth/login", methods=["POST"])
+@app.route("/solutions/naplanhub/api/auth/login", methods=["POST"])
 def login():
     body = request.get_json(force=True) or {}
     email = (body.get("email") or "").strip().lower()
@@ -165,13 +189,13 @@ def login():
     })
 
 
-@app.route("/api/auth/logout", methods=["POST"])
+@app.route("/solutions/naplanhub/api/auth/logout", methods=["POST"])
 def logout():
     session.clear()
     return jsonify({"ok": True})
 
 
-@app.route("/api/auth/me")
+@app.route("/solutions/naplanhub/api/auth/me")
 def me():
     with db() as conn:
         cursor = conn.cursor()
@@ -191,7 +215,7 @@ def _current_edition(cursor):
     return cursor.fetchone()[0]
 
 
-@app.route("/api/editions")
+@app.route("/solutions/naplanhub/api/editions")
 def list_editions():
     """Editions available for a year level, newest first, legacy (NULL) last."""
     year = request.args.get("year", type=int)
@@ -215,7 +239,7 @@ def list_editions():
     ])
 
 
-@app.route("/api/tests")
+@app.route("/solutions/naplanhub/api/tests")
 def list_tests():
     """List tests, optionally filtered by year level, domain code, type and edition.
 
@@ -284,7 +308,7 @@ def list_tests():
     ])
 
 
-@app.route("/api/tests/<int:test_id>")
+@app.route("/solutions/naplanhub/api/tests/<int:test_id>")
 def get_test(test_id):
     """Return a test's metadata and its questions, without answers/explanations."""
     with db() as conn:
@@ -434,7 +458,7 @@ def _build_feedback(cursor, attempt_id, year_level_id):
     return {"comments": comments, "domain_accuracy": domain_accuracy, "suggestions": suggestions}
 
 
-@app.route("/api/tests/<int:test_id>/submit", methods=["POST"])
+@app.route("/solutions/naplanhub/api/tests/<int:test_id>/submit", methods=["POST"])
 def submit_test(test_id):
     """Score a submitted attempt, store it against the logged-in student, and
     return instant results plus coaching feedback. Login is required so the
@@ -544,7 +568,7 @@ def submit_test(test_id):
 # Profile / history
 # ------------------------------------------------------------------
 
-@app.route("/api/me/attempts")
+@app.route("/solutions/naplanhub/api/me/attempts")
 def my_attempts():
     with db() as conn:
         cursor = conn.cursor()
@@ -580,7 +604,7 @@ def my_attempts():
     ])
 
 
-@app.route("/api/attempts/<int:attempt_id>")
+@app.route("/solutions/naplanhub/api/attempts/<int:attempt_id>")
 def attempt_detail(attempt_id):
     with db() as conn:
         cursor = conn.cursor()
@@ -642,7 +666,7 @@ def attempt_detail(attempt_id):
 # Numeracy: instant per-question checking + skill (strand) practice
 # ------------------------------------------------------------------
 
-@app.route("/api/questions/<int:question_id>/check", methods=["POST"])
+@app.route("/solutions/naplanhub/api/questions/<int:question_id>/check", methods=["POST"])
 def check_question(question_id):
     """Instant right/wrong + explanation for one question, without creating
     an attempt. Powers immediate feedback while practicing (pick, check,
@@ -673,7 +697,7 @@ def check_question(question_id):
     })
 
 
-@app.route("/api/numeracy-strands")
+@app.route("/solutions/naplanhub/api/numeracy-strands")
 def numeracy_strands():
     """Skill areas available for Numeracy practice (e.g. Fractions, Angles),
     each with a question-bank count, for skill-based practice."""
@@ -700,7 +724,7 @@ def numeracy_strands():
     return jsonify([{"strand": r.strand, "question_count": r.n} for r in rows])
 
 
-@app.route("/api/numeracy/practice-set", methods=["POST"])
+@app.route("/solutions/naplanhub/api/numeracy/practice-set", methods=["POST"])
 def numeracy_practice_set():
     """Spin up (or reuse) a short ad-hoc practice quiz for one numeracy
     skill/strand, pulling randomly from the whole question bank for that
@@ -808,9 +832,9 @@ def track_click(token):
         )
         row = cursor.fetchone()
         if row is None:
-            return redirect("/practice.html", code=302)
+            return redirect("/solutions/naplanhub/practice.html", code=302)
 
-        send_id, target_url = row[0], (row[1] or "/practice.html")
+        send_id, target_url = row[0], (row[1] or "/solutions/naplanhub/practice.html")
         cursor.execute(
             "INSERT INTO dbo.campaign_clicks (send_id, target_url, ip_address, user_agent) VALUES (?, ?, ?, ?)",
             send_id, target_url, request.remote_addr, (request.headers.get("User-Agent") or "")[:500],
