@@ -1,5 +1,10 @@
 -- NAPLAN Prep Hub — migration: fix band_estimate truncation bug, add login
 -- credentials to dbo.students so students can have an account with history.
+--
+-- SQL Server-only historical record, kept for reference. Superseded by
+-- database/schema.sql, which now creates band_estimate/email/password_hash
+-- with their final shapes directly — a fresh PostgreSQL install never
+-- needs this file. Do not run this against Postgres.
 
 USE [naplan-portal];
 GO

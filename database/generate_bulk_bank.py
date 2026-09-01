@@ -1223,7 +1223,6 @@ DOMAIN_TITLES = {"N": "Numeracy practice", "LC": "Language conventions", "R": "R
 
 def insert_bucket(conn, domain_map, year_level, content_year, domain_code, items):
     cursor = conn.cursor()
-    cursor.fast_executemany = True
 
     rows = []
     for item in items:
@@ -1248,7 +1247,7 @@ def insert_bucket(conn, domain_map, year_level, content_year, domain_code, items
 
     cursor.execute(
         "SELECT question_id FROM dbo.questions WHERE year_level_id = ? AND domain_id = ? AND content_year = ? "
-        "ORDER BY question_id DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY",
+        "ORDER BY question_id DESC LIMIT ?",
         year_level, domain_map[domain_code], content_year, len(rows),
     )
     ids = [r[0] for r in cursor.fetchall()]
@@ -1265,8 +1264,8 @@ def create_tests(conn, domain_map, year_level, content_year, domain_code, questi
         cursor.execute(
             """
             INSERT INTO dbo.tests (year_level_id, domain_id, title, test_type, time_limit_mins, status, content_year)
-            OUTPUT INSERTED.test_id
             VALUES (?, ?, ?, 'practice', ?, 'published', ?)
+            RETURNING test_id
             """,
             year_level, domain_map[domain_code], title, 20, content_year,
         )

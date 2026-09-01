@@ -50,9 +50,9 @@ def main():
 
     cursor.execute(
         f"""
-        DELETE aa FROM dbo.attempt_answers aa
-        JOIN dbo.questions q ON q.question_id = aa.question_id
-        WHERE q.content_year IN ({placeholders})
+        DELETE FROM dbo.attempt_answers aa
+        USING dbo.questions q
+        WHERE q.question_id = aa.question_id AND q.content_year IN ({placeholders})
         """,
         *prune_years,
     )
@@ -60,9 +60,9 @@ def main():
 
     cursor.execute(
         f"""
-        DELETE tq FROM dbo.test_questions tq
-        JOIN dbo.tests t ON t.test_id = tq.test_id
-        WHERE t.content_year IN ({placeholders})
+        DELETE FROM dbo.test_questions tq
+        USING dbo.tests t
+        WHERE t.test_id = tq.test_id AND t.content_year IN ({placeholders})
         """,
         *prune_years,
     )

@@ -292,8 +292,8 @@ def seed_questions(conn, domain_map, year_level_id, questions):
                 (year_level_id, domain_id, strand, difficulty, question_type,
                  prompt, option_a, option_b, option_c, option_d,
                  correct_answer, explanation, status)
-            OUTPUT INSERTED.question_id
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'published')
+            RETURNING question_id
             """,
             year_level_id, domain_id, strand, diff,
             "short_answer" if a is None else "multiple_choice",
@@ -315,8 +315,8 @@ def seed_tests(conn, domain_map, question_ids, year_level_id):
         cursor.execute(
             """
             INSERT INTO dbo.tests (year_level_id, domain_id, title, test_type, time_limit_mins, status)
-            OUTPUT INSERTED.test_id
             VALUES (?, ?, ?, 'practice', ?, 'published')
+            RETURNING test_id
             """,
             year_level_id, domain_map[code], title, 20,
         )

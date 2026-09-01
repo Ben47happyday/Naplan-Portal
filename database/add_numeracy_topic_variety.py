@@ -90,8 +90,8 @@ def insert_items(conn, domain_map, year_level, content_year, items):
                 (year_level_id, domain_id, strand, difficulty, question_type,
                  prompt, option_a, option_b, option_c, option_d,
                  correct_answer, explanation, status, content_year)
-            OUTPUT INSERTED.question_id
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'published', ?)
+            RETURNING question_id
             """,
             year_level, domain_map["N"], item["strand"], item["difficulty"],
             item["question_type"], item["prompt"], opts[0], opts[1], opts[2], opts[3],
@@ -118,8 +118,8 @@ def create_topic_variety_test(conn, domain_map, year_level, content_year, questi
     cursor.execute(
         """
         INSERT INTO dbo.tests (year_level_id, domain_id, title, test_type, time_limit_mins, status, content_year)
-        OUTPUT INSERTED.test_id
         VALUES (?, ?, ?, 'practice', ?, 'published', ?)
+        RETURNING test_id
         """,
         year_level, domain_map["N"], title, 20, content_year,
     )
