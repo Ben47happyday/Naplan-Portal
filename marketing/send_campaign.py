@@ -194,8 +194,8 @@ def get_or_create_campaign(conn, name: str, subject_template: str, template_path
         """
         INSERT INTO dbo.campaigns
             (name, subject_template, template_path, sender_email, learn_more_url, status)
-        OUTPUT INSERTED.campaign_id
         VALUES (?, ?, ?, ?, ?, 'sending')
+        RETURNING campaign_id
         """,
         name, subject_template, template_path, sender_email, learn_more_url,
     )
@@ -213,8 +213,8 @@ def get_or_create_receiver(conn, org_name: str, email: str) -> int:
     cursor.execute(
         """
         INSERT INTO dbo.campaign_receivers (org_name, email, source)
-        OUTPUT INSERTED.receiver_id
         VALUES (?, ?, ?)
+        RETURNING receiver_id
         """,
         org_name, email, "send_campaign.py (ad-hoc, not in leads CSV)",
     )

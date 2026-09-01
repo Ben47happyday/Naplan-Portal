@@ -44,8 +44,8 @@ def get_or_create_campaign(conn, name: str) -> int:
     cursor.execute(
         """
         INSERT INTO dbo.campaigns (name, subject_template, template_path, sender_email, status)
-        OUTPUT INSERTED.campaign_id
         VALUES (?, ?, ?, ?, 'completed')
+        RETURNING campaign_id
         """,
         name,
         "(historical — subject not recorded pre-tracking)",
@@ -66,8 +66,8 @@ def get_or_create_receiver(conn, org_name: str, email: str) -> int:
     cursor.execute(
         """
         INSERT INTO dbo.campaign_receivers (org_name, email, source)
-        OUTPUT INSERTED.receiver_id
         VALUES (?, ?, ?)
+        RETURNING receiver_id
         """,
         org_name, email, "backfill_send_history.py (ad-hoc)",
     )
@@ -86,9 +86,10 @@ def already_recorded(conn, campaign_id: int, receiver_id: int, sent_at: datetime
 
 
 def parse_sent_at(raw: str) -> datetime:
-    """sent_log.csv timestamps are UTC ISO-8601 (e.g. "...+00:00"). DATETIME2
-    has no timezone, so store the naive UTC wall-clock value."""
-    return datetime.fromisoformat(raw).replace(tzinfo=None)
+    """sent_log.csv timestamps are UTC ISO-8601 (e.g. "...+00:00"). sent_at is
+    TIMESTAMPTZ, so keep the tz-aware value rather than stripping it — a naive
+    datetime would be interpreted in the session's local timezone instead."""
+    return datetime.fromisoformat(raw)
 
 
 def main():
