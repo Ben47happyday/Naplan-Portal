@@ -19,7 +19,7 @@
     <nav class="main-nav">
       <a href="#services">Services</a>
       <a href="#solutions">Solutions</a>
-      <a class="btn btn-primary btn-small" href="mailto:hello@zcube.com.au">Get in touch</a>
+      <a class="btn btn-primary btn-small" href="#" data-open-contact>Get in touch</a>
     </nav>
   </div>
 </header>
@@ -33,7 +33,7 @@
     <p class="hero-lede">Zcube is a small studio that ships fast: websites and apps designed and built with AI-assisted workflows, plus the data modeling and visualization to back them up.</p>
     <div class="hero-actions">
       <a class="btn btn-primary" href="#solutions">See our solutions</a>
-      <a class="btn btn-secondary" href="mailto:hello@zcube.com.au">Get in touch</a>
+      <a class="btn btn-secondary" href="#" data-open-contact>Get in touch</a>
     </div>
   </div>
 </section>
@@ -93,6 +93,97 @@
     <span>AI-driven websites, apps &amp; data solutions</span>
   </div>
 </footer>
+
+<div class="modal-overlay" id="contact-modal" hidden>
+  <div class="modal-box">
+    <button type="button" class="modal-close" id="contact-modal-close" aria-label="Close">&times;</button>
+    <h3>Get in touch</h3>
+    <p class="modal-lede">Tell us a bit about your project and we'll get back to you.</p>
+    <form id="contact-form">
+      <label for="contact-name">Name</label>
+      <input type="text" id="contact-name" name="name" autocomplete="name">
+
+      <label for="contact-company">Company</label>
+      <input type="text" id="contact-company" name="company" autocomplete="organization">
+
+      <label for="contact-phone">Phone</label>
+      <input type="tel" id="contact-phone" name="phone" autocomplete="tel">
+
+      <label for="contact-email">Email *</label>
+      <input type="email" id="contact-email" name="email" required autocomplete="email">
+
+      <label for="contact-message">Enquiry *</label>
+      <textarea id="contact-message" name="message" rows="4" required placeholder="What can we help with?"></textarea>
+
+      <div class="modal-error" id="contact-error"></div>
+      <button type="submit" class="btn btn-primary" id="contact-submit">Send enquiry</button>
+    </form>
+    <div class="modal-success" id="contact-success">
+      <i class="ti ti-circle-check"></i>
+      <p>Thanks — we've received your enquiry and will be in touch soon.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const modal = document.getElementById("contact-modal");
+  const form = document.getElementById("contact-form");
+  const errorEl = document.getElementById("contact-error");
+  const successEl = document.getElementById("contact-success");
+  const submitBtn = document.getElementById("contact-submit");
+
+  function openModal(e) {
+    e.preventDefault();
+    modal.hidden = false;
+    form.hidden = false;
+    successEl.classList.remove("visible");
+    errorEl.classList.remove("visible");
+  }
+  function closeModal() {
+    modal.hidden = true;
+  }
+
+  document.querySelectorAll("[data-open-contact]").forEach((btn) => btn.addEventListener("click", openModal));
+  document.getElementById("contact-modal-close").addEventListener("click", closeModal);
+  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) closeModal(); });
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    errorEl.classList.remove("visible");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Sending…";
+
+    fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: document.getElementById("contact-name").value,
+        company: document.getElementById("contact-company").value,
+        phone: document.getElementById("contact-phone").value,
+        email: document.getElementById("contact-email").value,
+        message: document.getElementById("contact-message").value,
+      }),
+    })
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Something went wrong — please try again.");
+        form.hidden = true;
+        successEl.classList.add("visible");
+        form.reset();
+      })
+      .catch((err) => {
+        errorEl.textContent = err.message;
+        errorEl.classList.add("visible");
+      })
+      .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Send enquiry";
+      });
+  });
+})();
+</script>
 
 </body>
 </html>

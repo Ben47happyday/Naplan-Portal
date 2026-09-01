@@ -13,6 +13,9 @@ import base64
 import json
 import os
 import sys
+import urllib.error
+import urllib.parse
+import urllib.request
 from contextlib import contextmanager
 
 from dotenv import load_dotenv
@@ -94,6 +97,98 @@ def healthz():
         cursor = conn.cursor()
         cursor.execute("SELECT 1")
     return jsonify({"status": "ok"})
+
+
+# ------------------------------------------------------------------
+# Zcube homepage: "Get in touch" contact form
+#
+# Sends via Microsoft Graph's sendMail API (app-only OAuth2 client
+# credentials), the same mechanism marketing/send_campaign.py uses —
+# credentials here come from environment variables on this Render
+# service, not marketing/config.json (a separate process/deployment).
+# Until MS_GRAPH_CLIENT_SECRET etc. are configured, the form correctly
+# reports itself as unavailable rather than silently pretending to send.
+# ------------------------------------------------------------------
+
+_GRAPH_TOKEN_URL = "https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
+_GRAPH_SEND_MAIL_URL = "https://graph.microsoft.com/v1.0/users/{sender}/sendMail"
+_CONTACT_RECIPIENT = "support@zcube.com.au"
+
+
+def _graph_configured():
+    return all(os.environ.get(k) for k in
+               ("MS_GRAPH_TENANT_ID", "MS_GRAPH_CLIENT_ID", "MS_GRAPH_CLIENT_SECRET", "MS_GRAPH_SENDER_EMAIL"))
+
+
+def _get_graph_token():
+    url = _GRAPH_TOKEN_URL.format(tenant_id=os.environ["MS_GRAPH_TENANT_ID"])
+    data = urllib.parse.urlencode({
+        "client_id": os.environ["MS_GRAPH_CLIENT_ID"],
+        "client_secret": os.environ["MS_GRAPH_CLIENT_SECRET"],
+        "scope": "https://graph.microsoft.com/.default",
+        "grant_type": "client_credentials",
+    }).encode()
+    req = urllib.request.Request(url, data=data, method="POST")
+    with urllib.request.urlopen(req, timeout=10) as resp:
+        return json.loads(resp.read())["access_token"]
+
+
+def _send_contact_email(name, company, phone, email, message):
+    token = _get_graph_token()
+    sender = os.environ["MS_GRAPH_SENDER_EMAIL"]
+    url = _GRAPH_SEND_MAIL_URL.format(sender=urllib.parse.quote(sender))
+    body_text = (
+        "New enquiry from the Zcube website contact form:\n\n"
+        f"Name: {name or '(not provided)'}\n"
+        f"Company: {company or '(not provided)'}\n"
+        f"Phone: {phone or '(not provided)'}\n"
+        f"Email: {email}\n\n"
+        f"Message:\n{message}"
+    )
+    payload = json.dumps({
+        "message": {
+            "subject": f"Website enquiry from {name or email}",
+            "body": {"contentType": "Text", "content": body_text},
+            "toRecipients": [{"emailAddress": {"address": _CONTACT_RECIPIENT}}],
+            "replyTo": [{"emailAddress": {"address": email}}],
+        },
+        "saveToSentItems": "true",
+    }).encode()
+    req = urllib.request.Request(
+        url, data=payload, method="POST",
+        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=10):
+        pass  # 202 Accepted, empty body
+
+
+@app.route("/api/contact", methods=["POST"])
+def contact_enquiry():
+    body = request.get_json(force=True) or {}
+    name = (body.get("name") or "").strip()
+    company = (body.get("company") or "").strip()
+    phone = (body.get("phone") or "").strip()
+    email = (body.get("email") or "").strip()
+    message = (body.get("message") or "").strip()
+
+    if not email or "@" not in email:
+        return jsonify({"error": "A valid email address is required."}), 400
+    if not message:
+        return jsonify({"error": "Please include a message."}), 400
+
+    if not _graph_configured():
+        app.logger.error("Contact form submitted but MS_GRAPH_* env vars are not configured")
+        return jsonify({"error": "Sorry, the enquiry form isn't set up to send yet — "
+                                  "please email support@zcube.com.au directly."}), 503
+
+    try:
+        _send_contact_email(name, company, phone, email, message)
+    except Exception:
+        app.logger.exception("Failed to send contact enquiry email")
+        return jsonify({"error": "Something went wrong sending your enquiry — "
+                                  "please email support@zcube.com.au directly."}), 502
+
+    return jsonify({"ok": True})
 
 
 # ------------------------------------------------------------------
