@@ -11,20 +11,23 @@
   --border: #2B2640;
   --text-heading: #F6F4FC;
   --text-body: #B7B2CC;
-  --text-muted: #756F94;
+  --text-muted: #9490B5;       /* lightened from #756F94 — was 4.22:1 on --bg, under AA */
 
   --accent: #7C3AED;            /* deep violet primary */
   --accent-2: #0D9488;          /* deep teal secondary */
   --accent-text: #FFFFFF;
 
-  --tag-amber-bg: rgba(180,83,9,0.18);
-  --tag-amber-fg: #F59E0B;
-  --tag-rose-bg: rgba(190,18,60,0.2);
-  --tag-rose-fg: #FB7185;
-  --tag-emerald-bg: rgba(13,148,136,0.2);
-  --tag-emerald-fg: #2DD4BF;
-  --tag-violet-bg: rgba(124,58,237,0.2);
-  --tag-violet-fg: #A78BFA;
+  /* Solid dark bg + bright fg per hue, not a translucent tint — the tint
+     approach measured ~2.0-2.34:1 text contrast (WCAG AA needs 4.5:1 at
+     this text size); this pattern clears 8:1+ instead. */
+  --tag-amber-bg: #4A2E05;
+  --tag-amber-fg: #FCD34D;
+  --tag-rose-bg: #4C0519;
+  --tag-rose-fg: #FDA4AF;
+  --tag-emerald-bg: #064E3B;
+  --tag-emerald-fg: #6EE7B7;
+  --tag-violet-bg: #2E1065;
+  --tag-violet-fg: #C4B5FD;
 
   --radius: 24px;
   --radius-pill: 999px;
