@@ -8,24 +8,12 @@
     return;
   }
 
+  // Quizzes are open to anyone — no login required to answer questions.
+  // Login only gates Submit's persistence (see submitQuiz/renderResults)
+  // and viewing past attempts on the Profile page.
   const redirectTarget = encodeURIComponent(`quiz.html?test_id=${testId}`);
 
-  NaplanAuth.me().then((user) => {
-    if (!user) {
-      root.innerHTML = `
-        <div class="diagnostic-banner">
-          <div>
-            <h3><i class="ti ti-lock"></i> Log in to take this quiz</h3>
-            <p>Logging in lets us mark your answers instantly and save the result to your history.</p>
-          </div>
-          <a class="btn btn-primary" href="login.html?redirect=${redirectTarget}">Log in</a>
-        </div>
-        <p class="lede">New here? <a href="signup.html?redirect=${redirectTarget}">Create an account</a> — it only takes a minute.</p>
-      `;
-      return;
-    }
-    loadQuiz();
-  });
+  loadQuiz();
 
   function loadQuiz() {
     fetch(apiUrl(`/api/tests/${testId}`))
@@ -204,6 +192,10 @@
       `<a class="btn btn-secondary btn-small" style="margin-top:10px;" href="quiz.html?test_id=${s.test_id}">Try: ${escapeHtml(s.title)}</a>`
     ).join(" ");
 
+    const notSavedHtml = result.saved === false
+      ? `<p class="lede"><i class="ti ti-lock"></i> This result wasn't saved — <a href="login.html?redirect=${redirectTarget}">log in</a> to keep a history of your practice.</p>`
+      : "";
+
     root.innerHTML = `
       <div class="diagnostic-banner">
         <div>
@@ -212,6 +204,7 @@
         </div>
         <a class="btn btn-primary" href="practice.html">Back to practice</a>
       </div>
+      ${notSavedHtml}
       ${(commentsHtml || domainHtml) ? `
         <div class="feedback-box">
           ${commentsHtml}

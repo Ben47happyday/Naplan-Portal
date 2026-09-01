@@ -380,31 +380,7 @@ def _band_estimate(percent_correct):
     return "Working towards expected standard"
 
 
-def _build_feedback(cursor, attempt_id, year_level_id):
-    """Per-domain accuracy breakdown, a couple of plain-language comments,
-    and a suggested next practice test targeting the weakest domain."""
-    cursor.execute(
-        """
-        SELECT d.code, d.name, aa.is_correct, aa.written_score
-        FROM dbo.attempt_answers aa
-        JOIN dbo.questions q ON q.question_id = aa.question_id
-        JOIN dbo.domains d ON d.domain_id = q.domain_id
-        WHERE aa.attempt_id = ?
-        """,
-        attempt_id,
-    )
-
-    domain_stats = {}
-    for code, name, is_correct, written_score in cursor.fetchall():
-        if is_correct is None:
-            continue
-        # Writing questions get their real rubric score; multiple-choice
-        # questions map correctness to 100/0 — both land on the same scale.
-        question_score = float(written_score) if written_score is not None else (100 if is_correct else 0)
-        stat = domain_stats.setdefault(code, {"name": name, "score_sum": 0.0, "total": 0})
-        stat["total"] += 1
-        stat["score_sum"] += question_score
-
+def _domain_accuracy_from_stats(domain_stats):
     domain_accuracy = [
         {
             "domain_code": code,
@@ -414,7 +390,15 @@ def _build_feedback(cursor, attempt_id, year_level_id):
         for code, stat in domain_stats.items() if stat["total"] > 0
     ]
     domain_accuracy.sort(key=lambda d: d["accuracy"])
+    return domain_accuracy
 
+
+def _feedback_from_domain_accuracy(cursor, domain_accuracy, year_level_id):
+    """Plain-language comments and a suggested next practice test targeting
+    the weakest domain, given an already-computed domain_accuracy list —
+    shared by submit_test (computed in-memory, works with or without a
+    logged-in student) and _build_feedback (reconstructed from a saved
+    attempt's DB rows, for viewing history on Profile)."""
     comments = []
     suggestions = []
 
@@ -458,16 +442,45 @@ def _build_feedback(cursor, attempt_id, year_level_id):
     return {"comments": comments, "domain_accuracy": domain_accuracy, "suggestions": suggestions}
 
 
+def _build_feedback(cursor, attempt_id, year_level_id):
+    """Feedback for a PAST attempt, reconstructed from its saved
+    attempt_answers rows — used when viewing history on Profile."""
+    cursor.execute(
+        """
+        SELECT d.code, d.name, aa.is_correct, aa.written_score
+        FROM dbo.attempt_answers aa
+        JOIN dbo.questions q ON q.question_id = aa.question_id
+        JOIN dbo.domains d ON d.domain_id = q.domain_id
+        WHERE aa.attempt_id = ?
+        """,
+        attempt_id,
+    )
+
+    domain_stats = {}
+    for code, name, is_correct, written_score in cursor.fetchall():
+        if is_correct is None:
+            continue
+        # Writing questions get their real rubric score; multiple-choice
+        # questions map correctness to 100/0 — both land on the same scale.
+        question_score = float(written_score) if written_score is not None else (100 if is_correct else 0)
+        stat = domain_stats.setdefault(code, {"name": name, "score_sum": 0.0, "total": 0})
+        stat["total"] += 1
+        stat["score_sum"] += question_score
+
+    domain_accuracy = _domain_accuracy_from_stats(domain_stats)
+    return _feedback_from_domain_accuracy(cursor, domain_accuracy, year_level_id)
+
+
 @app.route("/solutions/naplanhub/api/tests/<int:test_id>/submit", methods=["POST"])
 def submit_test(test_id):
-    """Score a submitted attempt, store it against the logged-in student, and
-    return instant results plus coaching feedback. Login is required so the
-    attempt can be recorded to the student's history."""
+    """Score a submitted attempt and return instant results plus coaching
+    feedback. Open to anyone — a logged-in student additionally gets the
+    attempt recorded to their history; an anonymous submission is scored
+    and returned the same way, just nothing is persisted (there's no
+    account to attach it to)."""
     with db() as conn:
         cursor = conn.cursor()
         student = _current_student(cursor)
-        if student is None:
-            return jsonify({"error": "login_required", "message": "Please log in to submit answers."}), 401
 
         body = request.get_json(force=True) or {}
         answers = body.get("answers") or {}
@@ -479,32 +492,39 @@ def submit_test(test_id):
 
         cursor.execute(
             """
-            SELECT question_id, correct_answer, explanation, question_type
-            FROM dbo.questions
-            WHERE question_id IN (
+            SELECT q.question_id, q.correct_answer, q.explanation, q.question_type,
+                   d.code AS domain_code, d.name AS domain_name
+            FROM dbo.questions q
+            JOIN dbo.domains d ON d.domain_id = q.domain_id
+            WHERE q.question_id IN (
                 SELECT question_id FROM dbo.test_questions WHERE test_id = ?
             )
             """,
             test_id,
         )
         answer_key = {
-            row.question_id: (row.correct_answer, row.explanation, row.question_type)
+            row.question_id: (row.correct_answer, row.explanation, row.question_type,
+                               row.domain_code, row.domain_name)
             for row in cursor.fetchall()
         }
 
-        cursor.execute(
-            "INSERT INTO dbo.attempts (student_id, test_id, completed_at) "
-            "VALUES (?, ?, NOW()) RETURNING attempt_id",
-            student["student_id"], test_id,
-        )
-        attempt_id = cursor.fetchone()[0]
+        attempt_id = None
+        if student is not None:
+            cursor.execute(
+                "INSERT INTO dbo.attempts (student_id, test_id, completed_at) "
+                "VALUES (?, ?, NOW()) RETURNING attempt_id",
+                student["student_id"], test_id,
+            )
+            attempt_id = cursor.fetchone()[0]
 
         results = []
         scored_count = 0
         correct_count = 0
         score_sum = 0.0
+        domain_stats = {}
 
-        for question_id, (correct_answer, explanation, question_type) in answer_key.items():
+        for question_id, (correct_answer, explanation, question_type,
+                           domain_code, domain_name) in answer_key.items():
             student_answer = answers.get(str(question_id), answers.get(question_id))
             is_writing = question_type == "short_answer" and correct_answer.startswith("Open response")
             written_score = None
@@ -526,13 +546,19 @@ def submit_test(test_id):
                 if is_correct:
                     correct_count += 1
 
-            cursor.execute(
-                "INSERT INTO dbo.attempt_answers "
-                "(attempt_id, question_id, student_answer, is_correct, written_score, written_feedback) "
-                "VALUES (?, ?, ?, ?, ?, ?)",
-                attempt_id, question_id, student_answer, is_correct,
-                written_score, json.dumps(writing_assessment) if writing_assessment else None,
-            )
+            question_score = written_score if written_score is not None else (100 if is_correct else 0)
+            stat = domain_stats.setdefault(domain_code, {"name": domain_name, "score_sum": 0.0, "total": 0})
+            stat["total"] += 1
+            stat["score_sum"] += question_score
+
+            if attempt_id is not None:
+                cursor.execute(
+                    "INSERT INTO dbo.attempt_answers "
+                    "(attempt_id, question_id, student_answer, is_correct, written_score, written_feedback) "
+                    "VALUES (?, ?, ?, ?, ?, ?)",
+                    attempt_id, question_id, student_answer, is_correct,
+                    written_score, json.dumps(writing_assessment) if writing_assessment else None,
+                )
             results.append({
                 "question_id": question_id,
                 "student_answer": student_answer,
@@ -545,12 +571,14 @@ def submit_test(test_id):
         percent = round(score_sum / scored_count, 1) if scored_count else None
         band = _band_estimate(percent) if percent is not None else "Not auto-scored"
 
-        cursor.execute(
-            "UPDATE dbo.attempts SET score = ?, band_estimate = ? WHERE attempt_id = ?",
-            percent, band, attempt_id,
-        )
+        if attempt_id is not None:
+            cursor.execute(
+                "UPDATE dbo.attempts SET score = ?, band_estimate = ? WHERE attempt_id = ?",
+                percent, band, attempt_id,
+            )
 
-        feedback = _build_feedback(cursor, attempt_id, test_row.year_level_id)
+        domain_accuracy = _domain_accuracy_from_stats(domain_stats)
+        feedback = _feedback_from_domain_accuracy(cursor, domain_accuracy, test_row.year_level_id)
         conn.commit()
 
     return jsonify({
@@ -561,6 +589,7 @@ def submit_test(test_id):
         "scored_count": scored_count,
         "results": results,
         "feedback": feedback,
+        "saved": attempt_id is not None,
     })
 
 
@@ -670,12 +699,10 @@ def attempt_detail(attempt_id):
 def check_question(question_id):
     """Instant right/wrong + explanation for one question, without creating
     an attempt. Powers immediate feedback while practicing (pick, check,
-    retry) ahead of the final Submit that records the full attempt."""
+    retry) ahead of the final Submit that records the full attempt. Open to
+    anyone, logged in or not — same as taking the quiz itself."""
     with db() as conn:
         cursor = conn.cursor()
-        if _current_student(cursor) is None:
-            return jsonify({"error": "login_required"}), 401
-
         body = request.get_json(force=True) or {}
         student_answer = body.get("answer")
 
@@ -729,7 +756,8 @@ def numeracy_practice_set():
     """Spin up (or reuse) a short ad-hoc practice quiz for one numeracy
     skill/strand, pulling randomly from the whole question bank for that
     strand+year — not tied to any single edition. Returns a normal test_id
-    so the existing quiz-taking, scoring and history flow just works."""
+    so the existing quiz-taking, scoring and history flow just works. Open
+    to anyone, logged in or not — same as taking any other quiz."""
     body = request.get_json(force=True) or {}
     year = body.get("year_level")
     strand = (body.get("strand") or "").strip()
@@ -740,9 +768,6 @@ def numeracy_practice_set():
 
     with db() as conn:
         cursor = conn.cursor()
-        if _current_student(cursor) is None:
-            return jsonify({"error": "login_required"}), 401
-
         title = f"Skill practice: {strand}"
         cursor.execute(
             """
