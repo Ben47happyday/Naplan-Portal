@@ -7,8 +7,8 @@
 <meta name="description" content="Zcube designs websites, builds apps, models data, and turns it into clear visualizations — powered by AI at every step.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.46.0/tabler-icons.min.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -17,8 +17,8 @@
   <div class="container header-row">
     <a class="brand" href="/">Zcube</a>
     <nav class="main-nav">
-      <a href="#services">Services</a>
-      <a href="#solutions">Solutions</a>
+      <a href="#services" class="nav-link"><i class="ti ti-apps"></i><span>Services</span></a>
+      <a href="#solutions" class="nav-link"><i class="ti ti-bulb"></i><span>Solutions</span></a>
       <a class="btn btn-primary btn-small" href="#" data-open-contact>Get in touch</a>
     </nav>
   </div>
@@ -31,6 +31,11 @@
     <p class="eyebrow">AI-driven digital solutions</p>
     <h1>We design, build, and make sense of your data — <span class="grad-text">with AI at every step.</span></h1>
     <p class="hero-lede">Zcube is a small studio that ships fast: websites and apps designed and built with AI-assisted workflows, plus the data modeling and visualization to back them up.</p>
+    <div class="hero-tags">
+      <span class="tag tag-green"><i class="ti ti-sparkles"></i> AI-native</span>
+      <span class="tag tag-coral"><i class="ti ti-bolt"></i> Fast turnaround</span>
+      <span class="tag tag-teal"><i class="ti ti-shield-check"></i> Reliable data</span>
+    </div>
     <div class="hero-actions">
       <a class="btn btn-primary" href="#solutions">See our solutions</a>
       <a class="btn btn-secondary" href="#" data-open-contact>Get in touch</a>
@@ -44,24 +49,28 @@
     <h2>Four disciplines, one AI-native process</h2>
     <div class="service-grid">
       <div class="service-card">
-        <span class="icon-tile"><i class="ti ti-layout-2"></i></span>
+        <span class="icon-circle amber"><i class="ti ti-layout-2"></i></span>
         <h3>Website Design</h3>
         <p>Fast, polished sites designed and iterated with AI tooling — from first draft to production in days, not months.</p>
+        <span class="card-tag">Frontend</span>
       </div>
       <div class="service-card">
-        <span class="icon-tile"><i class="ti ti-device-mobile"></i></span>
+        <span class="icon-circle coral"><i class="ti ti-device-mobile"></i></span>
         <h3>App Design</h3>
         <p>Web and mobile products designed around real user flows, built on frameworks that scale with you.</p>
+        <span class="card-tag">Web &amp; Mobile</span>
       </div>
       <div class="service-card">
-        <span class="icon-tile"><i class="ti ti-schema"></i></span>
+        <span class="icon-circle green"><i class="ti ti-schema"></i></span>
         <h3>Data Modeling</h3>
         <p>Clean, well-structured schemas and pipelines that make your data reliable, queryable, and ready to grow.</p>
+        <span class="card-tag">SQL &amp; NoSQL</span>
       </div>
       <div class="service-card">
-        <span class="icon-tile"><i class="ti ti-chart-dots-3"></i></span>
+        <span class="icon-circle teal"><i class="ti ti-chart-dots-3"></i></span>
         <h3>Data Visualization</h3>
         <p>Dashboards and reports that turn raw numbers into decisions people actually act on.</p>
+        <span class="card-tag">Dashboards</span>
       </div>
     </div>
   </div>
@@ -76,6 +85,11 @@
         <span class="solution-tag">Case study</span>
         <h3>NAPLAN Prep Hub</h3>
         <p>An AI-assisted NAPLAN test-prep platform for Australian students and parents — adaptive practice questions across Reading, Writing, Language Conventions and Numeracy, instant feedback, and progress tracking by year level.</p>
+        <div class="solution-feature-tags">
+          <span class="tag tag-green"><i class="ti ti-brain"></i> AI-assisted</span>
+          <span class="tag tag-coral"><i class="ti ti-target-arrow"></i> Adaptive practice</span>
+          <span class="tag tag-teal"><i class="ti ti-bolt"></i> Instant feedback</span>
+        </div>
         <a class="btn btn-primary" href="/solutions/naplanhub/">View live solution <i class="ti ti-arrow-up-right"></i></a>
       </div>
       <div class="solution-visual" aria-hidden="true">
