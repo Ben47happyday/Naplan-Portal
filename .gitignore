@@ -17,9 +17,12 @@ database/supabase_config.txt
 marketing/scret.txt
 marketing/config.json
 marketing/config.test.json
+marketing/config.real_send.json
+marketing/sent_log.csv
 marketing/test_sent_log.csv
 marketing/unsubscribe_list.csv
 marketing/test_lead.csv
+marketing/real_lead_*.csv
 
 # Editor / OS
 .vscode/

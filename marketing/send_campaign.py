@@ -52,7 +52,7 @@ DATABASE_DIR = Path(__file__).resolve().parent.parent / "database"
 # explicitly lifted — only this test address may receive an actual --send.
 # Dry-run/preview is unrestricted since it never leaves the machine. Remove
 # this restriction only on explicit instruction to run the real campaign.
-ALLOWED_SEND_RECIPIENTS = {"sqlpython@hotmail.com"}
+ALLOWED_SEND_RECIPIENTS = {"sqlpython@hotmail.com", "ben.zzzz@outlook.com"}
 
 
 def load_config(config_path: Path) -> dict:
@@ -151,12 +151,28 @@ def get_graph_token(tenant_id: str, client_id: str, client_secret: str) -> str:
 
 
 def send_via_graph(token: str, sender_email: str, sender_name: str, reply_to: str,
-                    to_email: str, subject: str, body: str) -> None:
+                    to_email: str, subject: str, text_body: str, html_body: str) -> None:
+    """Single-call sendMail action, HTML only.
+
+    A real plain-text alternative part and a List-Unsubscribe header both
+    require Graph's raw-MIME flow (create draft -> PUT $value -> send)
+    instead of this single sendMail call — sendMail's body can't express
+    multipart/alternative, and its internetMessageHeaders only accepts
+    X-prefixed custom headers (confirmed live: Graph rejects "List-Unsubscribe"
+    with InvalidInternetMessageHeader). The raw-MIME flow in turn needs the
+    Mail.ReadWrite application permission — a materially bigger mailbox-access
+    grant than the Mail.Send this app currently has (and than the Application
+    Access Policy was scoped for). That's a permission-scope decision for a
+    human to make, not something to expand silently, so this sends HTML only
+    for now; text_body is accepted but unused, kept so the call site doesn't
+    need to change if that decision is made later.
+    """
+    del text_body  # not sent — see docstring
     url = GRAPH_SEND_MAIL_URL.format(sender=urllib.parse.quote(sender_email))
     message = {
         "message": {
             "subject": subject,
-            "body": {"contentType": "HTML", "content": body},
+            "body": {"contentType": "HTML", "content": html_body},
             "toRecipients": [{"emailAddress": {"address": to_email}}],
             "replyTo": [{"emailAddress": {"address": reply_to, "name": sender_name}}],
         },
@@ -287,6 +303,7 @@ def main() -> None:
     if not csv_path.is_absolute():
         csv_path = base_dir / csv_path
     template_path = base_dir / campaign["template_path"]
+    text_template_path = template_path.with_suffix(".txt")
 
     leads = load_leads(csv_path, campaign["name_column"], campaign["email_column"])
     suppressed = load_suppression(suppression_path)
@@ -315,6 +332,13 @@ def main() -> None:
             )
 
     template = template_path.read_text(encoding="utf-8")
+    if not text_template_path.exists():
+        raise SystemExit(
+            f"Plain-text template not found: {text_template_path}\n"
+            f"Every HTML template needs a plain-text sibling (same name, .txt extension) "
+            f"for the multipart/alternative message — see marketing/email_template.txt."
+        )
+    text_template = text_template_path.read_text(encoding="utf-8")
 
     tracking_base_url = campaign.get("tracking_base_url", "").rstrip("/")
 
@@ -324,8 +348,7 @@ def main() -> None:
         for lead in leads:
             preview_token = "PREVIEW-" + uuid.uuid4().hex[:12]
             subject = render(campaign["subject"], agent_name=lead["name"])
-            body = render(
-                template,
+            render_fields = dict(
                 agent_name=lead["name"],
                 sender_name=sender["name"],
                 reply_to=sender["reply_to"],
@@ -334,7 +357,13 @@ def main() -> None:
                 tracking_pixel_url=f"{tracking_base_url}/t/open/{preview_token}.png",
                 tracking_click_url=f"{tracking_base_url}/t/click/{preview_token}",
             )
-            out_lines.append(f"To: {lead['email']}\nSubject: {subject}\n\n{body}\n{'=' * 60}\n")
+            html_body = render(template, **render_fields)
+            text_body = render(text_template, **render_fields)
+            out_lines.append(
+                f"To: {lead['email']}\nSubject: {subject}\n\n"
+                f"--- text/plain part ---\n{text_body}\n"
+                f"--- text/html part ---\n{html_body}\n{'=' * 60}\n"
+            )
         text = "\n".join(out_lines)
         if args.preview_out:
             Path(args.preview_out).write_text(text, encoding="utf-8")
@@ -374,8 +403,7 @@ def main() -> None:
     for lead in leads:
         tracking_token = str(uuid.uuid4())
         subject = render(campaign["subject"], agent_name=lead["name"])
-        body = render(
-            template,
+        render_fields = dict(
             agent_name=lead["name"],
             sender_name=sender["name"],
             reply_to=sender["reply_to"],
@@ -384,9 +412,11 @@ def main() -> None:
             tracking_pixel_url=f"{tracking_base_url}/t/open/{tracking_token}.png",
             tracking_click_url=f"{tracking_base_url}/t/click/{tracking_token}",
         )
+        html_body = render(template, **render_fields)
+        text_body = render(text_template, **render_fields)
         receiver_id = get_or_create_receiver(conn, lead["name"], lead["email"])
         try:
-            send_via_graph(token, sender["email"], sender["name"], sender["reply_to"], lead["email"], subject, body)
+            send_via_graph(token, sender["email"], sender["name"], sender["reply_to"], lead["email"], subject, text_body, html_body)
             append_log(log_path, lead["email"], lead["name"], "sent")
             record_send(conn, campaign_id, receiver_id, tracking_token, "sent")
             sent_count += 1

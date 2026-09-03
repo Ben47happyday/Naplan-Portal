@@ -1,0 +1,25 @@
+Hi {agent_name} team,
+
+I wanted to share NAPLAN Prep Hub — a digital NAPLAN practice-test platform we built, covering Years 3, 5, 7 and 9 (Reading, Writing, Numeracy, and Conventions of Language), with instant marking, band-level estimates, and strand-by-strand progress dashboards.
+
+It's live as a working demonstration of what we do at {business_name}: we design and build highly customizable web and quiz portals — not just NAPLAN content, but any curriculum, question bank, or training material your institution already has. Bring your own data source, and we can shape a platform around it, under your own branding.
+
+A few things this kind of platform typically includes:
+- Adaptive or fixed-form quizzes built from your own question bank
+- Instant marking with worked explanations
+- Progress dashboards for students, tutors, or trainees
+- Fully custom branding and domain — it's your platform, not ours
+
+See it in action: {tracking_click_url}
+
+Would you be open to a quick 15-minute call to see NAPLAN Prep Hub in action and talk through what a custom version could look like for {agent_name}?
+
+Thanks for your time — look forward to hearing from you.
+
+{sender_name}
+{business_name}
+{reply_to}
+
+---
+{business_name}, {business_address}.
+You're receiving this because {agent_name} was identified as a NAPLAN tutoring/coaching provider. If you'd prefer not to receive future emails from us, just reply "unsubscribe" and we'll remove you from our list.
