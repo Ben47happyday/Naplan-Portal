@@ -241,22 +241,16 @@ def get_graph_token(tenant_id: str, client_id: str, client_secret: str) -> str:
 
 def send_via_graph(token: str, sender_email: str, sender_name: str, reply_to: str,
                     to_email: str, subject: str, text_body: str, html_body: str) -> None:
-    """Single-call sendMail action, HTML only.
-
-    A real plain-text alternative part and a List-Unsubscribe header both
-    require Graph's raw-MIME flow (create draft -> PUT $value -> send)
-    instead of this single sendMail call — sendMail's body can't express
-    multipart/alternative, and its internetMessageHeaders only accepts
-    X-prefixed custom headers (confirmed live: Graph rejects "List-Unsubscribe"
-    with InvalidInternetMessageHeader). The raw-MIME flow in turn needs the
-    Mail.ReadWrite application permission — a materially bigger mailbox-access
-    grant than the Mail.Send this app currently has (and than the Application
-    Access Policy was scoped for). That's a permission-scope decision for a
-    human to make, not something to expand silently, so this sends HTML only
-    for now; text_body is accepted but unused, kept so the call site doesn't
-    need to change if that decision is made later.
-    """
-    del text_body  # not sent — see docstring
+    """Single-call sendMail action, HTML only — see build_mime_message's
+    docstring for why. The raw-MIME flow this needs (create draft -> PUT
+    $value -> send) was tried live on 2026-09-06 after Mail.ReadWrite was
+    reportedly granted, and still got 403 ErrorAccessDenied creating the
+    draft — so something in the permission grant, admin consent, or the
+    Exchange Application Access Policy isn't actually in effect yet. Not
+    re-attempting until that's confirmed working; reverted here rather than
+    leave real sends broken. text_body is accepted but unused, kept so the
+    call site doesn't need to change once this is unblocked."""
+    del text_body
     url = GRAPH_SEND_MAIL_URL.format(sender=urllib.parse.quote(sender_email))
     message = {
         "message": {
