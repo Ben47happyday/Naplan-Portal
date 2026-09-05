@@ -31,6 +31,7 @@ import argparse
 import csv
 import json
 import re
+import subprocess
 import sys
 import time
 import urllib.error
@@ -53,6 +54,94 @@ DATABASE_DIR = Path(__file__).resolve().parent.parent / "database"
 # Dry-run/preview is unrestricted since it never leaves the machine. Remove
 # this restriction only on explicit instruction to run the real campaign.
 ALLOWED_SEND_RECIPIENTS = {"sqlpython@hotmail.com", "ben.zzzz@outlook.com"}
+
+DEFAULT_MAX_SEND_PER_RUN = 15
+PLACEHOLDER_MARKERS = ("placeholder", "replace_with", "your name", "your registered")
+
+
+def _dns_lookup_confirms(record_type: str, name: str, must_contain: str | None, retries: int = 3) -> bool | None:
+    """True if the record is confirmed present, False if confirmed absent,
+    None if the check couldn't be run reliably at all (nslookup missing or
+    erroring on every attempt).
+
+    DNS lookups via nslookup proved flaky in this environment (a record
+    confirmed present on one call came back looking absent on the next,
+    purely from transient resolver issues) — a record that's actually there
+    doesn't intermittently vanish, so a single successful confirmation
+    short-circuits to True, while "absent" only sticks if every retry
+    agrees. nslookup's "can't find"/NXDOMAIN text lands on stderr, not
+    stdout — checking stdout alone (an earlier bug here) made every missing
+    record look like a false PASS.
+    """
+    ran_at_least_once = False
+    for _ in range(retries):
+        try:
+            result = subprocess.run(
+                ["nslookup", f"-type={record_type}", name],
+                capture_output=True, text=True, timeout=10,
+            )
+        except Exception:
+            continue
+        ran_at_least_once = True
+        combined = (result.stdout + "\n" + result.stderr).lower()
+        if "can't find" in combined or "non-existent domain" in combined:
+            continue
+        if must_contain is None or must_contain.lower() in result.stdout.lower():
+            return True
+    return False if ran_at_least_once else None
+
+
+def run_preflight_checklist(sender_email: str, business: dict, sender: dict,
+                             leads_count: int, max_send_per_run: int) -> None:
+    """Enforces marketing/DELIVERABILITY_PLAN.md before every real --send.
+    Any failed check aborts the run — see that file for what to fix and why."""
+    domain = sender_email.split("@")[-1]
+    failures = []
+
+    def check(label: str, ok: bool, detail: str = "") -> None:
+        print(f"  {'PASS' if ok else 'FAIL'}  {label}" + (f" — {detail}" if detail and not ok else ""))
+        if not ok:
+            failures.append(label)
+
+    print("\n--- Deliverability preflight (marketing/DELIVERABILITY_PLAN.md) ---")
+
+    spf = _dns_lookup_confirms("TXT", domain, "v=spf1")
+    check("SPF record", spf is True,
+          "no 'v=spf1' confirmed on TXT records after retries (missing, or nslookup unavailable here) — "
+          "verify manually: nslookup -type=TXT " + domain)
+
+    dkim = _dns_lookup_confirms("CNAME", f"selector1._domainkey.{domain}", must_contain=None)
+    check("DKIM (selector1)", dkim is True,
+          "selector1._domainkey CNAME not confirmed after retries — enable DKIM in the M365 admin center "
+          "(see plan doc section 1), or verify manually if you believe it's already set up")
+
+    dmarc = _dns_lookup_confirms("TXT", f"_dmarc.{domain}", "v=DMARC1")
+    check("DMARC record", dmarc is True,
+          "_dmarc TXT record not confirmed after retries — publish one (see plan doc section 1), "
+          "or verify manually if you believe it's already set up")
+
+    check(f"Batch size <= {max_send_per_run}", leads_count <= max_send_per_run,
+          f"{leads_count} recipients this run exceeds the warm-up limit — reduce with --limit or raise "
+          f"campaign.max_send_per_run once far enough along the ramp (see plan doc section 2)")
+
+    address_lower = (business.get("address") or "").lower()
+    check("Business address is real (not a placeholder)",
+          bool(business.get("address")) and not any(m in address_lower for m in PLACEHOLDER_MARKERS),
+          f"business.address looks like a placeholder: {business.get('address')!r}")
+
+    sender_name_lower = (sender.get("name") or "").lower()
+    check("Sender name is real (not a placeholder)",
+          bool(sender.get("name")) and not any(m in sender_name_lower for m in PLACEHOLDER_MARKERS),
+          f"sender.name looks like a placeholder: {sender.get('name')!r}")
+
+    print("---")
+
+    if failures:
+        raise SystemExit(
+            f"Refusing to send: {len(failures)} deliverability check(s) failed "
+            f"({', '.join(failures)}).\nSee marketing/DELIVERABILITY_PLAN.md for what each check means "
+            f"and how to fix it. This is a hard gate, not advisory — dry-run/preview is unaffected."
+        )
 
 
 def load_config(config_path: Path) -> dict:
@@ -330,6 +419,10 @@ def main() -> None:
                 "Dry-run/preview is unaffected — only --send is blocked. "
                 "Edit ALLOWED_SEND_RECIPIENTS in send_campaign.py once sending the real campaign is authorized."
             )
+        run_preflight_checklist(
+            sender["email"], business, sender, len(leads),
+            campaign.get("max_send_per_run", DEFAULT_MAX_SEND_PER_RUN),
+        )
 
     template = template_path.read_text(encoding="utf-8")
     if not text_template_path.exists():
