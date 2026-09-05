@@ -28,6 +28,7 @@ Usage:
 """
 
 import argparse
+import base64
 import csv
 import json
 import re
@@ -39,6 +40,9 @@ import urllib.parse
 import urllib.request
 import uuid
 from datetime import datetime, timezone
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.utils import formataddr
 from pathlib import Path
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -239,38 +243,63 @@ def get_graph_token(tenant_id: str, client_id: str, client_secret: str) -> str:
     return payload["access_token"]
 
 
+def build_mime_message(sender_email: str, sender_name: str, reply_to: str, to_email: str,
+                        subject: str, text_body: str, html_body: str) -> str:
+    """multipart/alternative (plain text + HTML) with a List-Unsubscribe header.
+
+    Graph's single-call sendMail action can't express either of these — only
+    one body contentType, and internetMessageHeaders rejects anything not
+    X-prefixed (confirmed live: InvalidInternetMessageHeader on a literal
+    "List-Unsubscribe"). Needs the raw-MIME flow in send_via_graph instead.
+
+    List-Unsubscribe only carries a mailto: form, not a one-click HTTPS URL —
+    there's no backend endpoint yet that fulfils an unsubscribe request
+    without further confirmation, and RFC 8058's List-Unsubscribe-Post is
+    only valid alongside a real one-click endpoint.
+    """
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = formataddr((sender_name, sender_email))
+    msg["To"] = to_email
+    msg["Reply-To"] = reply_to
+    msg["List-Unsubscribe"] = f"<mailto:{reply_to}?subject=unsubscribe>"
+    msg.attach(MIMEText(text_body, "plain", "utf-8"))
+    msg.attach(MIMEText(html_body, "html", "utf-8"))
+    return msg.as_string()
+
+
 def send_via_graph(token: str, sender_email: str, sender_name: str, reply_to: str,
                     to_email: str, subject: str, text_body: str, html_body: str) -> None:
-    """Single-call sendMail action, HTML only — see build_mime_message's
-    docstring for why. The raw-MIME flow this needs (create draft -> PUT
-    $value -> send) was tried live on 2026-09-06 after Mail.ReadWrite was
-    reportedly granted, and still got 403 ErrorAccessDenied creating the
-    draft — so something in the permission grant, admin consent, or the
-    Exchange Application Access Policy isn't actually in effect yet. Not
-    re-attempting until that's confirmed working; reverted here rather than
-    leave real sends broken. text_body is accepted but unused, kept so the
-    call site doesn't need to change once this is unblocked."""
-    del text_body
-    url = GRAPH_SEND_MAIL_URL.format(sender=urllib.parse.quote(sender_email))
-    message = {
-        "message": {
-            "subject": subject,
-            "body": {"contentType": "HTML", "content": html_body},
-            "toRecipients": [{"emailAddress": {"address": to_email}}],
-            "replyTo": [{"emailAddress": {"address": reply_to, "name": sender_name}}],
-        },
-        "saveToSentItems": "true",
-    }
-    data = json.dumps(message).encode()
-    req = urllib.request.Request(url, data=data, method="POST", headers={
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json",
-    })
-    try:
-        urllib.request.urlopen(req)
-    except urllib.error.HTTPError as e:
-        body_text = e.read().decode(errors="replace")
-        raise RuntimeError(f"{e.code} {e.reason}: {body_text}")
+    """Sends via Graph's raw-MIME flow for a real multipart/alternative body
+    and a List-Unsubscribe header, using the Mail.ReadWrite application
+    permission (confirmed live in the issued token's roles claim on
+    2026-09-06, after the admin-consent grant that had silently failed to
+    complete was re-confirmed).
+
+    Two calls, not the three-step create-then-PUT-$value sequence some docs
+    suggest: PUT .../messages/{id}/$value turned out to 405
+    ("OData request is not supported") — confirmed live. The actual working
+    shape is POST .../messages with the MIME content, base64-encoded, as the
+    body (Content-Type: text/plain) — this creates the message fully
+    populated in one call — then POST .../messages/{id}/send.
+    """
+    mime_content = build_mime_message(sender_email, sender_name, reply_to, to_email, subject, text_body, html_body)
+    mime_b64 = base64.b64encode(mime_content.encode("utf-8"))
+    auth_headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    base_url = f"https://graph.microsoft.com/v1.0/users/{urllib.parse.quote(sender_email)}/messages"
+
+    def _call(url, data, headers, method="POST"):
+        req = urllib.request.Request(url, data=data, method=method, headers=headers)
+        try:
+            with urllib.request.urlopen(req) as resp:
+                return resp.read()
+        except urllib.error.HTTPError as e:
+            body_text = e.read().decode(errors="replace")
+            raise RuntimeError(f"{e.code} {e.reason}: {body_text}")
+
+    draft = json.loads(_call(base_url, mime_b64, {"Authorization": f"Bearer {token}", "Content-Type": "text/plain"}).decode())
+    message_id = draft["id"]
+    _call(f"{base_url}/{message_id}/send", b"", auth_headers)
 
 
 def get_db_connection():
