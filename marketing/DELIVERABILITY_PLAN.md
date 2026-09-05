@@ -10,13 +10,13 @@ before every real `--send`, and refuses to send if any of them fail.
 | Item | Status | Detail |
 |---|---|---|
 | SPF | ✅ Done **[auto-checked]** | `v=spf1 include:spf.protection.outlook.com -all` on the sending domain |
-| DKIM | ⬜ Pending **[auto-checked]** | `selector1._domainkey.<domain>` / `selector2._domainkey.<domain>` CNAMEs must resolve. Enable in Microsoft 365 Defender portal → Email & collaboration → Policies → Email authentication settings → DKIM, then publish the two CNAMEs it generates. |
-| DMARC | ⬜ Pending **[auto-checked]** | `_dmarc.<domain>` TXT record must exist. Start with `v=DMARC1; p=none; rua=mailto:support@zcube.com.au; fo=1`, monitor for 1–2 weeks, then tighten to `p=quarantine` then `p=reject`. |
+| DKIM | ✅ Done **[auto-checked]** | Enabled 2026-09-05 in the M365 Defender portal (DKIM tab → zcube.com.au → status: Valid). CNAMEs published at GoDaddy: `selector1._domainkey` / `selector2._domainkey` → `selector{1,2}-zcube-com-au._domainkey.ZCUBESolutions123.w-v1.dkim.mail.microsoft`. |
+| DMARC | ✅ Done **[auto-checked]** | Published 2026-09-05 at GoDaddy: `_dmarc.zcube.com.au` TXT = `v=DMARC1; p=none; rua=mailto:support@zcube.com.au; fo=1`. Currently monitoring-only (`p=none`) — tighten to `p=quarantine` then `p=reject` after 1–2 weeks of clean aggregate reports. |
 
-Without all three, mailbox providers have no way to verify the message wasn't
-spoofed — this is the single biggest lever on junk placement, so the
-preflight check hard-blocks sending until DKIM and DMARC are live (SPF is
-already confirmed).
+All three now verified live and passing the automated preflight check —
+confirmed via a real end-to-end send after enabling DKIM. Revisit the DMARC
+policy strictness (`p=none` → `p=quarantine` → `p=reject`) once reports look
+clean.
 
 ## 2. Sending volume / warm-up
 
@@ -46,8 +46,8 @@ already confirmed).
 | Item | Status | Detail |
 |---|---|---|
 | Compliance footer (sender identity, address, unsubscribe) | ✅ Present **[auto-checked]** | Required under Australia's Spam Act 2003. Preflight checks `business.address`/`sender.name` aren't left as placeholder text. |
-| Plain-text alternative | ⬜ Built, not yet active | `email_template.txt` exists and is rendered, but Graph's `sendMail` action can't attach it (HTML-only body) — needs the `Mail.ReadWrite` permission decision (see `README.md` notes) to switch to the raw-MIME send path. |
-| `List-Unsubscribe` header | ⬜ Same blocker as above | Confirmed live that Graph's `sendMail` rejects non-`X-` custom headers; needs the same raw-MIME path. |
+| Plain-text alternative | ⬜ Built, not yet active | `email_template.txt` exists and is rendered, but Graph's `sendMail` action can't attach it (HTML-only body) — needs the raw-MIME send path. `Mail.ReadWrite` permission (the blocker) was granted 2026-09-05 — implementation is now unblocked, just not yet done. |
+| `List-Unsubscribe` header | ⬜ Same blocker, now lifted | Confirmed live that Graph's `sendMail` rejects non-`X-` custom headers; needs the same raw-MIME path, now buildable now that `Mail.ReadWrite` is granted. |
 | Avoid spam-trigger content | Manual | No ALL CAPS subject lines, excessive exclamation marks, "free money"-style phrasing, or link-heavy bodies. Current template is copy-reviewed and short by design. |
 
 ## 6. Post-send monitoring
