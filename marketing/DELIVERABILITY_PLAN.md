@@ -46,8 +46,8 @@ clean.
 | Item | Status | Detail |
 |---|---|---|
 | Compliance footer (sender identity, address, unsubscribe) | ✅ Present **[auto-checked]** | Required under Australia's Spam Act 2003. Preflight checks `business.address`/`sender.name` aren't left as placeholder text. |
-| Plain-text alternative | ⬜ Built, not yet active | `email_template.txt` exists and is rendered, but Graph's `sendMail` action can't attach it (HTML-only body) — needs the raw-MIME send path. `Mail.ReadWrite` permission (the blocker) was granted 2026-09-05 — implementation is now unblocked, just not yet done. |
-| `List-Unsubscribe` header | ⬜ Same blocker, now lifted | Confirmed live that Graph's `sendMail` rejects non-`X-` custom headers; needs the same raw-MIME path, now buildable now that `Mail.ReadWrite` is granted. |
+| Plain-text alternative | ✅ Live 2026-09-06 | Every send is now a real `multipart/alternative` (`email_template.txt` + `email_template.html`) via Graph's raw-MIME send path, verified with a real end-to-end send. |
+| `List-Unsubscribe` header | ✅ Live 2026-09-06 | Set on every send (`mailto:` form only — no one-click HTTPS endpoint exists yet, so no `List-Unsubscribe-Post`). Same raw-MIME path as above. |
 | Avoid spam-trigger content | Manual | No ALL CAPS subject lines, excessive exclamation marks, "free money"-style phrasing, or link-heavy bodies. Current template is copy-reviewed and short by design. |
 
 ## 6. Post-send monitoring
