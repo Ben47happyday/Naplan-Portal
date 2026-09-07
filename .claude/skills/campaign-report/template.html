@@ -1,0 +1,172 @@
+<title>%%PAGE_TITLE%%</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Source+Sans+3:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --cream:#FFFCF6; --cream-2:#FFF9F0; --panel:#FFFFFF;
+    --ink:#2C2013; --body:#5B4A38; --muted:#8A7A67; --border:#E4E1D8;
+    --orange:#F7A026; --orange-ink:#3A1A05;
+    --green-bg:#EAF3DE; --green-fg:#3B6D11;
+    --amber-bg:#FAEEDA; --amber-fg:#854F0B;
+    --coral-bg:#FAECE7; --coral-fg:#993C1D;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --cream:#1C1712; --cream-2:#241D16; --panel:#2A221A;
+      --ink:#F5EDE2; --body:#D8C9B8; --muted:#9C8B78; --border:#3C3226;
+      --orange:#F7A026; --orange-ink:#241304;
+      --green-bg:#233420; --green-fg:#8FD17A;
+      --amber-bg:#3A2C14; --amber-fg:#F0B961;
+      --coral-bg:#3A211C; --coral-fg:#F0937B;
+    }
+  }
+  :root[data-theme="dark"]{
+    --cream:#1C1712; --cream-2:#241D16; --panel:#2A221A;
+    --ink:#F5EDE2; --body:#D8C9B8; --muted:#9C8B78; --border:#3C3226;
+    --orange:#F7A026; --orange-ink:#241304;
+    --green-bg:#233420; --green-fg:#8FD17A;
+    --amber-bg:#3A2C14; --amber-fg:#F0B961;
+    --coral-bg:#3A211C; --coral-fg:#F0937B;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream); color:var(--body);
+    font-family:'Source Sans 3',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    font-size:16px; line-height:1.55;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:40px 24px 72px;}
+
+  h1,h2,h3{font-family:'Archivo',sans-serif; color:var(--ink); text-wrap:balance; margin:0;}
+  .mono{font-family:'IBM Plex Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums;}
+
+  header{display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; padding-bottom:20px; border-bottom:2px solid var(--border);}
+  .eyebrow{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin:0 0 6px;}
+  h1{font-size:28px; font-weight:800; letter-spacing:-0.01em;}
+  .status-pill{display:inline-flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:500; letter-spacing:0.03em; text-transform:uppercase; padding:5px 12px; border-radius:100px;}
+  .status-pill::before{content:""; width:6px; height:6px; border-radius:50%; background:currentColor;}
+  .status-pill.completed{background:var(--green-bg); color:var(--green-fg);}
+  .status-pill.sending{background:var(--amber-bg); color:var(--amber-fg);}
+  .status-pill.draft{background:var(--cream-2); color:var(--muted);}
+  .meta-line{font-size:14px; color:var(--muted); margin-top:6px;}
+  .meta-line a{color:var(--body);}
+
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin:28px 0;}
+  .stat{background:var(--panel); padding:18px 20px;}
+  .stat .n{font-family:'IBM Plex Mono',monospace; font-size:30px; font-weight:500; color:var(--ink); line-height:1;}
+  .stat .n small{font-size:16px; color:var(--muted); font-weight:400;}
+  .stat .l{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-top:6px;}
+
+  .callout{border-radius:12px; padding:20px 22px; margin:28px 0; border:1px solid var(--border);}
+  .callout.warn{background:var(--coral-bg); border-color:color-mix(in srgb, var(--coral-fg) 30%, transparent);}
+  .callout.info{background:var(--cream-2);}
+  .callout.good{background:var(--green-bg); border-color:color-mix(in srgb, var(--green-fg) 30%, transparent);}
+  .callout h2{font-size:16px; margin-bottom:8px; display:flex; align-items:center; gap:8px;}
+  .callout.warn h2{color:var(--coral-fg);}
+  .callout.warn h2::before{content:"⚑";font-size:14px;}
+  .callout.info h2{color:var(--ink);}
+  .callout.good h2{color:var(--green-fg);}
+  .callout.good h2::before{content:"✓";font-size:14px;}
+  .callout p{margin:0 0 10px; font-size:14.5px;}
+  .callout p:last-child{margin-bottom:0;}
+  .callout code{font-family:'IBM Plex Mono',monospace; font-size:12.5px; background:var(--panel); border:1px solid var(--border); padding:1px 6px; border-radius:5px; color:var(--ink);}
+
+  section{margin:36px 0;}
+  section > h2{font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); font-weight:700; margin-bottom:14px; font-family:'IBM Plex Mono',monospace;}
+
+  .tablewrap{overflow-x:auto; border:1px solid var(--border); border-radius:12px;}
+  table{width:100%; border-collapse:collapse; min-width:680px; background:var(--panel);}
+  th,td{text-align:left; padding:12px 16px; border-bottom:1px solid var(--border); font-size:14px; vertical-align:top;}
+  th{font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); font-weight:500; background:var(--cream-2);}
+  tr:last-child td{border-bottom:none;}
+  td.org{font-weight:600; color:var(--ink);}
+  td.email{font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--body);}
+  td.time{font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--muted); white-space:nowrap;}
+
+  .badge{display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:500; padding:3px 10px; border-radius:100px; white-space:nowrap;}
+  .badge.sent{background:var(--green-bg); color:var(--green-fg);}
+  .badge.failed{background:var(--coral-bg); color:var(--coral-fg);}
+  .badge.bot{background:var(--coral-bg); color:var(--coral-fg);}
+  .badge.proxy{background:var(--amber-bg); color:var(--amber-fg);}
+  .badge.engaged{background:var(--green-bg); color:var(--green-fg);}
+  .badge.none{background:var(--cream-2); color:var(--muted); border:1px dashed var(--border);}
+
+  .log{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:4px;}
+  .log-row{display:grid; grid-template-columns:88px 130px 1fr; gap:14px; padding:11px 14px; font-family:'IBM Plex Mono',monospace; font-size:12.5px; align-items:baseline;}
+  .log-row + .log-row{border-top:1px solid var(--border);}
+  .log-row .ev{font-weight:500;}
+  .log-row .ev.open{color:var(--amber-fg);}
+  .log-row .ev.click{color:var(--coral-fg);}
+  .log-row .who{color:var(--muted);}
+  .log-row .ua{color:var(--body); overflow-wrap:anywhere;}
+  .log-empty{padding:20px; text-align:center; color:var(--muted); font-size:13.5px;}
+
+  .steps{display:flex; flex-direction:column; gap:10px;}
+  .step{display:flex; gap:12px; align-items:flex-start; background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px 16px;}
+  .step .dot{flex:none; width:22px; height:22px; border-radius:50%; background:var(--orange); color:var(--orange-ink); font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:500; display:flex; align-items:center; justify-content:center; margin-top:1px;}
+  .step p{margin:0; font-size:14.5px;}
+  .step strong{color:var(--ink);}
+
+  footer{margin-top:44px; padding-top:18px; border-top:1px solid var(--border); font-size:12.5px; color:var(--muted); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;}
+  footer .mono{font-size:11.5px;}
+
+  @media (max-width:640px){
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .log-row{grid-template-columns:1fr; gap:4px;}
+  }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div>
+      <p class="eyebrow">Campaign send report</p>
+      <h1>%%CAMPAIGN_NAME%%</h1>
+      <p class="meta-line">%%SENT_RANGE%% · as <span class="mono">%%SENDER_EMAIL%%</span>%%LEARN_MORE_LINE%%</p>
+    </div>
+    <span class="status-pill %%STATUS_CLASS%%">%%STATUS_LABEL%%</span>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="n">%%SENT_COUNT%%<small>/%%TOTAL_COUNT%%</small></div><div class="l">Delivered</div></div>
+    <div class="stat"><div class="n">%%OPEN_COUNT%%</div><div class="l">Open events</div></div>
+    <div class="stat"><div class="n">%%CLICK_COUNT%%</div><div class="l">Click events</div></div>
+    <div class="stat"><div class="n">%%ENGAGED_COUNT%%</div><div class="l">Confirmed human opens</div></div>
+  </div>
+
+  %%SIGNAL_CALLOUT%%
+
+  <section>
+    <h2>Per-recipient detail</h2>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Organisation</th><th>Email</th><th>Sent</th><th>Delivery</th><th>Recorded signal</th></tr>
+        </thead>
+        <tbody>
+%%RECIPIENT_ROWS%%
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Raw event log — dbo.campaign_opens / dbo.campaign_clicks</h2>
+    <div class="log">
+%%LOG_ROWS%%
+    </div>
+  </section>
+
+  <section>
+    <h2>Next steps</h2>
+    <div class="steps">
+%%NEXT_STEPS%%
+    </div>
+  </section>
+
+  <footer>
+    <span>Source: Supabase Postgres, <span class="mono">dbo.campaigns</span> / <span class="mono">campaign_sends</span> / <span class="mono">campaign_receivers</span> / <span class="mono">campaign_opens</span> / <span class="mono">campaign_clicks</span> — campaign_id <span class="mono">%%CAMPAIGN_ID%%</span></span>
+    <span class="mono">Generated %%GENERATED_AT%%</span>
+  </footer>
+
+</div>
