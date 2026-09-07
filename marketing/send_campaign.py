@@ -57,7 +57,13 @@ DATABASE_DIR = Path(__file__).resolve().parent.parent / "database"
 # explicitly lifted — only this test address may receive an actual --send.
 # Dry-run/preview is unrestricted since it never leaves the machine. Remove
 # this restriction only on explicit instruction to run the real campaign.
-ALLOWED_SEND_RECIPIENTS = {"sqlpython@hotmail.com", "ben.zzzz@outlook.com"}
+ALLOWED_SEND_RECIPIENTS = {
+    "sqlpython@hotmail.com", "ben.zzzz@outlook.com",
+    # Production batch 1, approved 2026-09-07 after content review:
+    "kenneth@mbhcoaching.com.au", "judith@directspeech.com.au",
+    "penny@mspennystutoring.com.au", "tonybrinley@westnet.com.au",
+    "info@alchemytuition.com.au",
+}
 
 DEFAULT_MAX_SEND_PER_RUN = 15
 PLACEHOLDER_MARKERS = ("placeholder", "replace_with", "your name", "your registered")
