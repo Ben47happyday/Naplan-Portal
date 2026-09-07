@@ -63,6 +63,10 @@ ALLOWED_SEND_RECIPIENTS = {
     "kenneth@mbhcoaching.com.au", "judith@directspeech.com.au",
     "penny@mspennystutoring.com.au", "tonybrinley@westnet.com.au",
     "info@alchemytuition.com.au",
+    # Production batch 2, approved 2026-09-08 (next 5 unsent leads, per plan):
+    "info@matrix.edu.au", "rosebery@mwns.com.au",
+    "enquiries@globaleducationacademy.com.au", "info@nextstepacademy.com.au",
+    "support@clueylearning.com",
 }
 
 DEFAULT_MAX_SEND_PER_RUN = 15
