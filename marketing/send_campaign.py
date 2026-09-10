@@ -67,6 +67,12 @@ ALLOWED_SEND_RECIPIENTS = {
     "info@matrix.edu.au", "rosebery@mwns.com.au",
     "enquiries@globaleducationacademy.com.au", "info@nextstepacademy.com.au",
     "support@clueylearning.com",
+    # Production batch 3, approved 2026-09-10 (10 independent/non-franchise leads):
+    "bellavista@alphaonecollege.com.au", "info@reachacademy.com.au",
+    "admin@acehsc.com.au", "info@sltutoring.com.au",
+    "info@breakawayeducation.com.au", "leap2learn22@gmail.com",
+    "hello@highlandstutor.com", "enquiries@spectrumtuition.com",
+    "admin@acelearningcentre.com.au", "pointcook@preunicollegedigital.com.au",
 }
 
 DEFAULT_MAX_SEND_PER_RUN = 15
