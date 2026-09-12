@@ -10,6 +10,7 @@ Usage:
 """
 
 import base64
+import ipaddress
 import json
 import os
 import sys
@@ -775,6 +776,40 @@ _TRACKING_PIXEL = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
 )
 
+# Same marker list as .claude/skills/campaign-report/generate_report.py's
+# classify_event(), reused here so a scanner is flagged at insert time
+# instead of only when a report happens to be generated afterwards.
+_BOT_UA_MARKERS = [
+    "bot", "spam", "scan", "crawl", "monitor", "checker", "antispam",
+    "safelink", "proofpoint", "mimecast", "barracuda",
+]
+
+
+def _client_ip():
+    """Behind Render's reverse proxy, request.remote_addr is always one of
+    a handful of internal proxy hops, never the real client — every event
+    was landing on the same ~6 addresses regardless of recipient. Read the
+    original client IP off X-Forwarded-For instead, falling back to
+    remote_addr only if the header's missing (e.g. local dev)."""
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.remote_addr
+
+
+def _is_private_ip(ip):
+    try:
+        return ipaddress.ip_address(ip).is_private
+    except ValueError:
+        return False
+
+
+def _looks_like_bot(user_agent, ip_address):
+    ua = (user_agent or "").lower()
+    if any(marker in ua for marker in _BOT_UA_MARKERS):
+        return True
+    return _is_private_ip(ip_address or "")
+
 
 @app.route("/t/open/<uuid:token>.png")
 def track_open(token):
@@ -783,9 +818,21 @@ def track_open(token):
         cursor.execute("SELECT send_id FROM dbo.campaign_sends WHERE tracking_token = ?", str(token))
         row = cursor.fetchone()
         if row is not None:
+            send_id = row[0]
+            ip_address = _client_ip()
+            user_agent = (request.headers.get("User-Agent") or "")[:500]
+
+            # A click already on record for this send means it fired before
+            # this open — the reverse of how a human reads an email, then
+            # clicks inside it. That ordering is itself a stronger bot tell
+            # than either event's own UA/IP, so it overrides them here too.
+            cursor.execute("SELECT 1 FROM dbo.campaign_clicks WHERE send_id = ? LIMIT 1", send_id)
+            click_precedes = cursor.fetchone() is not None
+            is_bot = click_precedes or _looks_like_bot(user_agent, ip_address)
+
             cursor.execute(
-                "INSERT INTO dbo.campaign_opens (send_id, ip_address, user_agent) VALUES (?, ?, ?)",
-                row[0], request.remote_addr, (request.headers.get("User-Agent") or "")[:500],
+                "INSERT INTO dbo.campaign_opens (send_id, ip_address, user_agent, is_likely_bot) VALUES (?, ?, ?, ?)",
+                send_id, ip_address, user_agent, is_bot,
             )
             conn.commit()
     resp = app.response_class(_TRACKING_PIXEL, mimetype="image/png")
@@ -811,9 +858,20 @@ def track_click(token):
             return redirect("/practice.html", code=302)
 
         send_id, target_url = row[0], (row[1] or "/practice.html")
+        ip_address = _client_ip()
+        user_agent = (request.headers.get("User-Agent") or "")[:500]
+
+        # No open on record yet for this send means this click is arriving
+        # before any open ever will — a mail-security scanner prefetching
+        # the link, not a human who opened the email first.
+        cursor.execute("SELECT 1 FROM dbo.campaign_opens WHERE send_id = ? LIMIT 1", send_id)
+        click_precedes_open = cursor.fetchone() is None
+        is_bot = click_precedes_open or _looks_like_bot(user_agent, ip_address)
+
         cursor.execute(
-            "INSERT INTO dbo.campaign_clicks (send_id, target_url, ip_address, user_agent) VALUES (?, ?, ?, ?)",
-            send_id, target_url, request.remote_addr, (request.headers.get("User-Agent") or "")[:500],
+            "INSERT INTO dbo.campaign_clicks (send_id, target_url, ip_address, user_agent, is_likely_bot) "
+            "VALUES (?, ?, ?, ?, ?)",
+            send_id, target_url, ip_address, user_agent, is_bot,
         )
         conn.commit()
     return redirect(target_url, code=302)
