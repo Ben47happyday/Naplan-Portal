@@ -73,9 +73,18 @@ a { color: inherit; text-decoration: none; }
   row-gap: 10px;
 }
 .brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
   font-weight: 800;
   font-size: 20px;
   color: var(--text-heading);
+}
+.brand-logo {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 .main-nav {
   display: flex;
