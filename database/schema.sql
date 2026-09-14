@@ -184,8 +184,15 @@ CREATE TABLE IF NOT EXISTS dbo.campaign_opens (
     send_id          INT NOT NULL REFERENCES dbo.campaign_sends(send_id),
     opened_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
     ip_address       VARCHAR(45) NULL,
-    user_agent       VARCHAR(500) NULL
+    user_agent       VARCHAR(500) NULL,
+    -- Set at insert time in backend/app.py (UA scanner-pattern match, a
+    -- private/proxy-range IP, or a click already on record for this send —
+    -- see .claude/skills/campaign-report/generate_report.py for the same
+    -- heuristic applied at report time to older rows predating this column.
+    is_likely_bot    BOOLEAN NOT NULL DEFAULT FALSE
 );
+
+ALTER TABLE dbo.campaign_opens ADD COLUMN IF NOT EXISTS is_likely_bot BOOLEAN NOT NULL DEFAULT FALSE;
 
 CREATE TABLE IF NOT EXISTS dbo.campaign_clicks (
     click_id         INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -193,7 +200,10 @@ CREATE TABLE IF NOT EXISTS dbo.campaign_clicks (
     clicked_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
     target_url       VARCHAR(500) NULL,
     ip_address       VARCHAR(45) NULL,
-    user_agent       VARCHAR(500) NULL
+    user_agent       VARCHAR(500) NULL,
+    is_likely_bot    BOOLEAN NOT NULL DEFAULT FALSE
 );
+
+ALTER TABLE dbo.campaign_clicks ADD COLUMN IF NOT EXISTS is_likely_bot BOOLEAN NOT NULL DEFAULT FALSE;
 
 -- Run via: python create_schema.py  (see database/config.py for connection)
