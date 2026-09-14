@@ -73,6 +73,13 @@ ALLOWED_SEND_RECIPIENTS = {
     "info@breakawayeducation.com.au", "leap2learn22@gmail.com",
     "hello@highlandstutor.com", "enquiries@spectrumtuition.com",
     "admin@acelearningcentre.com.au", "pointcook@preunicollegedigital.com.au",
+    # Production batch 4, approved 2026-09-14 (6 independent/non-franchise leads
+    # from Tracy's 55-lead untapped list, filtered against the multi-branch
+    # exclusion rule from batch 3 — her list included several franchise
+    # clusters, e.g. Kumon/James An College/MWNS/NumberWorks'nWords):
+    "harry@mymastercoach.com.au", "connect@selectivetrial.com.au",
+    "info@emueducation.com.au", "dnatuition@gmail.com",
+    "edentuitioncentre@gmail.com", "newcastle.tutors@yahoo.com.au",
 }
 
 DEFAULT_MAX_SEND_PER_RUN = 15
