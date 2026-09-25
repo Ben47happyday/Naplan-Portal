@@ -80,6 +80,12 @@ ALLOWED_SEND_RECIPIENTS = {
     "harry@mymastercoach.com.au", "connect@selectivetrial.com.au",
     "info@emueducation.com.au", "dnatuition@gmail.com",
     "edentuitioncentre@gmail.com", "newcastle.tutors@yahoo.com.au",
+    # Production batch 5, staged 2026-09-25 (8 independent/non-franchise
+    # leads, no two from the same institute/company, pending Ben's review):
+    "info@highhopestutoring.com.au", "enquiries@successhub.au",
+    "hello@systematechedu.com.au", "enquiries@topmarkstutoring.com.au",
+    "info@tutorssa.com.au", "starkidstutoring101@gmail.com",
+    "thetutoringteachersnt@gmail.com", "enquiries@nononsensetutoring.com.au",
 }
 
 DEFAULT_MAX_SEND_PER_RUN = 15
